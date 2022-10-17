@@ -97,7 +97,7 @@ def close_socket()  -> None:
 def update_keyboard() -> None:
     keyboard_code = client_gui.key_status
     # print(f"{bin(keyboard_code)}")
-
+    manager.send_message_to_socket(keyboard_code, mySocket, message_type=MessageType.KEY_STATUS)
 
 
 if __name__ == '__main__':
