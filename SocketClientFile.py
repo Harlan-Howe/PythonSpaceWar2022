@@ -96,7 +96,7 @@ def close_socket()  -> None:
 
 def update_keyboard() -> None:
     keyboard_code = client_gui.key_status
-    print(f"{bin(keyboard_code)}")
+    # print(f"{bin(keyboard_code)}")
 
 
 
@@ -118,7 +118,7 @@ if __name__ == '__main__':
     client_gui.tell_my_client_to_send_message = send_message
     client_gui.shut_down_socket = close_socket
 
-    keyboard_timer = RepeatTimer(0.01, update_keyboard())
+    keyboard_timer = RepeatTimer(0.01, update_keyboard)
     keyboard_timer.start()
 
     client_gui.run_loop()
