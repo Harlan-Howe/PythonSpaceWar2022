@@ -179,7 +179,7 @@ class ClientGUI:
         self.world_canvas.delete("all")
         for item in world_list:
             if item["type"] == "PLAYER":
-                id = int(item["id"])
+                user_id = int(item["id"])
                 x = int(float(item["x"]))
                 y = int(float(item["y"]))
                 bearing = float(item["bearing"])
