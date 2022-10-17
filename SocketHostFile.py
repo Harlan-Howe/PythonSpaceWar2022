@@ -103,6 +103,15 @@ def game_loop_step() -> None:
         user_dictionary[id]["PlayerShip"].update(delta_t)
     user_dictionary_lock.release()
     last_update = now
+    send_world_update_to_all_users()
+
+def send_world_update_to_all_users()
+    message = ""
+    user_dictionary_lock.acquire()
+    for user_id in user_dictionary:
+        message += f"{user_dictionary[user_id]['PlayerShip'].public_info()}\n"
+    user_dictionary_lock.release()
+    broadcast_message_to_all(message, MessageType.WORLD_UPDATE)
 
 if __name__ == '__main__':
     global user_dictionary, user_dictionary_lock, latest_id, broadcast_manager, last_update
