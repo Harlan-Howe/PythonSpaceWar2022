@@ -42,12 +42,13 @@ def handle_world_update(tab_delimited_world_list_string: str) -> None:
         values = line.split("\t")
         game_object = {}
         game_object["type"] = values[0]
-        game_object["id"] = int(values[1])
-        game_object["x"] = int(values[2])
-        game_object["y"] = int(values[3])
-        game_object["bearing"] = float(values[4])
-        game_object["thrusting"] = values[5] == 1
-        game_object["health"] = int(values[6])
+        if values[0] == "PLAYER":
+            game_object["id"] = int(values[1])
+            game_object["x"] = int(values[2])
+            game_object["y"] = int(values[3])
+            game_object["bearing"] = float(values[4])
+            game_object["thrusting"] = values[5] == 1
+            game_object["health"] = int(values[6])
         world_contents.append(game_object)
 
 def handle_user_list_update(tab_delimited_user_list_string:str) -> None:
