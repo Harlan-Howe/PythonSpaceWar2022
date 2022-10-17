@@ -8,6 +8,7 @@ class MessageType(Enum):
     SUBMISSION = 1
     USER_LIST = 2
     KEY_STATUS = 3
+    WORLD_UPDATE = 4
 
 
 class SocketMessageIO:
