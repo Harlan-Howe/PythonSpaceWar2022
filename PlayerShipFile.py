@@ -43,4 +43,4 @@ class PlayerShip:
 
     def public_info(self):
         thrusting = min(self.controls & 12, 1)
-        return f"{self.my_id}\t{self.x}\t{self.y}\t{self.bearing}\t{thrusting}\t{self.health}"
+        return f"PLAYER\t{self.my_id}\t{self.x}\t{self.y}\t{self.bearing}\t{thrusting}\t{self.health}"
