@@ -70,17 +70,19 @@ def listen_to_connection(connection_to_hear: socket, connection_id: int, connect
             return
 
         # if we got here, that means that we've received a message.
-        if name is None:  # this must be the first message, which is just the username.
-            name = message
-            manager.send_message_to_socket(f"Welcome, {name}!", connection_to_hear)
-            user_dictionary_lock.acquire()
-            user_dictionary[connection_id]["name"] = name
-            user_dictionary_lock.release()
-            broadcast_message_to_all(f"{'-'*6} {name} has joined the conversation. {'-'*6} ")
-            send_user_list_to_all()
-        else:  # it's a normal message - broadcast it to everybody.
-            broadcast_message_to_all(f"{name}: {message}")
-
+        if message_type == MessageType.SUBMISSION:
+            if name is None:  # this must be the first message, which is just the username.
+                name = message
+                manager.send_message_to_socket(f"Welcome, {name}!", connection_to_hear)
+                user_dictionary_lock.acquire()
+                user_dictionary[connection_id]["name"] = name
+                user_dictionary_lock.release()
+                broadcast_message_to_all(f"{'-'*6} {name} has joined the conversation. {'-'*6} ")
+                send_user_list_to_all()
+            else:  # it's a normal message - broadcast it to everybody.
+                broadcast_message_to_all(f"{name}: {message}")
+        elif message_type == MessageType.KEY_STATUS:
+            print(message)
 
 if __name__ == '__main__':
     global user_dictionary, user_dictionary_lock, latest_id, broadcast_manager
