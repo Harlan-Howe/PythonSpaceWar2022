@@ -110,9 +110,14 @@ class ClientGUI:
         self.user_list_text['state'] = 'disabled'  # not editable by user
 
         # this is where the transcript of the chat is kept.
-        self.chat_response_text = ScrolledText(self.root, background='#bbbbbb')
-        self.chat_response_text.grid(column=1, row=0, sticky='ns')
-        self.chat_response_text['state'] = 'disabled'  # not editable by user
+        # self.chat_response_text = ScrolledText(self.root, background='#bbbbbb')
+        # self.chat_response_text.grid(column=1, row=0, sticky='ns')
+        # self.chat_response_text['state'] = 'disabled'  # not editable by user
+
+        # This is where the graphics will go...
+        self.world_canvas = tk.Canvas(self.root, width = 800, height = 800, background = "black")
+        self.world_canvas.grid(column=1, row=0, sticky="nsew")
+
 
     def run_loop(self) -> None:
         """
@@ -144,17 +149,17 @@ class ClientGUI:
         self.user_list_text.replace(1.0, 'end', names)
         self.user_list_text['state'] = 'disabled'
 
-    def add_to_chat(self, entry: str) -> None:
-        """
-        appends the given entry to the list of items in the chat_so_far and updates the chat_response_text GUI text
-        area, accordingly.
-        :param entry: the string to append to the chat_so_far.
-        :return: None
-        """
-        self.chat_so_far += entry+"\n"
-        self.chat_response_text['state'] = 'normal'
-        self.chat_response_text.replace(1.0, 'end', self.chat_so_far)
-        self.chat_response_text['state'] = 'disabled'
+    # def add_to_chat(self, entry: str) -> None:
+    #     """
+    #     appends the given entry to the list of items in the chat_so_far and updates the chat_response_text GUI text
+    #     area, accordingly.
+    #     :param entry: the string to append to the chat_so_far.
+    #     :return: None
+    #     """
+    #     self.chat_so_far += entry+"\n"
+    #     self.chat_response_text['state'] = 'normal'
+    #     self.chat_response_text.replace(1.0, 'end', self.chat_so_far)
+    #     self.chat_response_text['state'] = 'disabled'
 
     def respond_to_text_entry(self, event_info):
         """
