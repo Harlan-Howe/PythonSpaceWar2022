@@ -2,6 +2,8 @@ import socket
 import threading
 from typing import Dict
 from PlayerShipFile import PlayerShip
+from RepeatTimerFile import RepeatTimer
+import time
 
 from SocketMessageIOFile import SocketMessageIO, MessageType
 port = 3000
@@ -89,11 +91,21 @@ def listen_to_connection(connection_to_hear: socket, connection_id: int, connect
 def update_ship_controls(id: int, new_controls: int) -> None:
     user_dictionary_lock.acquire()
     user_dictionary[id]["PlayerShip"].controls = new_controls
-    print(user_dictionary)
+    # print(user_dictionary)
     user_dictionary_lock.release()
 
+def game_loop_step() -> None:
+    global last_update
+    now = time.time()
+    delta_t = now-last_update
+    user_dictionary_lock.acquire()
+    for user_id in user_dictionary:
+        user_dictionary[id]["PlayerShip"].update(delta_t)
+    user_dictionary_lock.release()
+    last_update = now
+
 if __name__ == '__main__':
-    global user_dictionary, user_dictionary_lock, latest_id, broadcast_manager
+    global user_dictionary, user_dictionary_lock, latest_id, broadcast_manager, last_update
     broadcast_manager = None
     latest_id = 0
 
@@ -112,6 +124,11 @@ if __name__ == '__main__':
     mySocket.bind(('', port))
     mySocket.listen(5)
     print("Socket is listening.")
+
+    last_update = time.time()
+    game_loop_timer = RepeatTimer(0.03, game_loop_step)
+    game_loop_timer.start()
+
     while True:
         connection, address = mySocket.accept()  # wait to receive a new socket connection.
 
