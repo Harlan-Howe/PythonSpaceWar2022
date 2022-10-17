@@ -38,5 +38,5 @@ class PlayerShip:
             self.vy *= factor
 
     def __repr__(self):
-        return f"id: {self.my_id}\tcontrols{bin(self.controls):8d}"
+        return f"id: {self.my_id}\tcontrols{format(self.controls,'#010b')}"
 
