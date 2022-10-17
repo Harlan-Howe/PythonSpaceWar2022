@@ -105,7 +105,7 @@ def game_loop_step() -> None:
     last_update = now
     send_world_update_to_all_users()
 
-def send_world_update_to_all_users()
+def send_world_update_to_all_users() -> None:
     message = ""
     user_dictionary_lock.acquire()
     for user_id in user_dictionary:
