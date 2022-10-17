@@ -1,3 +1,4 @@
+import math
 import tkinter as tk
 from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
@@ -149,17 +150,18 @@ class ClientGUI:
         self.user_list_text.replace(1.0, 'end', names)
         self.user_list_text['state'] = 'disabled'
 
-    # def add_to_chat(self, entry: str) -> None:
-    #     """
-    #     appends the given entry to the list of items in the chat_so_far and updates the chat_response_text GUI text
-    #     area, accordingly.
-    #     :param entry: the string to append to the chat_so_far.
-    #     :return: None
-    #     """
-    #     self.chat_so_far += entry+"\n"
-    #     self.chat_response_text['state'] = 'normal'
-    #     self.chat_response_text.replace(1.0, 'end', self.chat_so_far)
-    #     self.chat_response_text['state'] = 'disabled'
+    def add_to_chat(self, entry: str) -> None:
+        """
+        appends the given entry to the list of items in the chat_so_far and updates the chat_response_text GUI text
+        area, accordingly.
+        :param entry: the string to append to the chat_so_far.
+        :return: None
+        """
+        # self.chat_so_far += entry+"\n"
+        # self.chat_response_text['state'] = 'normal'
+        # self.chat_response_text.replace(1.0, 'end', self.chat_so_far)
+        # self.chat_response_text['state'] = 'disabled'
+        self.user_entry_string.set(entry)
 
     def respond_to_text_entry(self, event_info):
         """
@@ -172,3 +174,18 @@ class ClientGUI:
         if message != "":
             self.tell_my_client_to_send_message(message)
             self.user_entry_string.set("")
+
+    def update_world(self, world_list):
+        self.world_canvas.delete("all")
+        for item in world_list:
+            if item["type"] == "PLAYER":
+                id = int(item["id"])
+                x = int(float(item["x"]))
+                y = int(float(item["y"]))
+                bearing = float(item["bearing"])
+                is_thrusting = int(item["thrusting"]) == 1
+                health = int(item["health"])
+                self.world_canvas.create_oval(x-5, y-5, x+5, y+5, fill="red")
+                self.world_canvas.create_line(x, y, int(x + 5 * math.cos(bearing)), int(y + 5 * math.sin(bearing)),
+                                              fill="black", width=2)
+
