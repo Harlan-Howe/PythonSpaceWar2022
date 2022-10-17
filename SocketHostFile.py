@@ -1,6 +1,7 @@
 import socket
 import threading
 from typing import Dict
+from PlayerShipFile import PlayerShip
 
 from SocketMessageIOFile import SocketMessageIO, MessageType
 port = 3000
@@ -76,6 +77,7 @@ def listen_to_connection(connection_to_hear: socket, connection_id: int, connect
                 manager.send_message_to_socket(f"Welcome, {name}!", connection_to_hear)
                 user_dictionary_lock.acquire()
                 user_dictionary[connection_id]["name"] = name
+                user_dictionary[connection_id]["PlayerShip"] = PlayerShip(connection_id)
                 user_dictionary_lock.release()
                 broadcast_message_to_all(f"{'-'*6} {name} has joined the conversation. {'-'*6} ")
                 send_user_list_to_all()
@@ -83,6 +85,11 @@ def listen_to_connection(connection_to_hear: socket, connection_id: int, connect
                 broadcast_message_to_all(f"{name}: {message}")
         elif message_type == MessageType.KEY_STATUS:
             print(message)
+
+def update_ship_controls(id: int, new_controls: int) -> None:
+    user_dictionary_lock.acquire()
+    user_dictionary[id]["PlayerShip"].controls = new_controls
+    user_dictionary_lock.release()
 
 if __name__ == '__main__':
     global user_dictionary, user_dictionary_lock, latest_id, broadcast_manager
@@ -96,6 +103,8 @@ if __name__ == '__main__':
     #                                        4: {"name":"Opus", "connection": some_socket_connection3}}
     user_dictionary: Dict[int, Dict] = {}
     user_dictionary_lock = threading.Lock()
+
+
 
     mySocket = socket.socket()
 
