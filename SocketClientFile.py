@@ -2,6 +2,7 @@ import socket
 import threading
 
 from ClientGUIFile import ClientGUI
+from RepeatTimerFile import RepeatTimer
 from SocketMessageIOFile import SocketMessageIO, MessageType
 
 host_URL = '127.0.0.1'
@@ -93,6 +94,11 @@ def close_socket()  -> None:
     keep_listening = False
     mySocket.close()
 
+def update_keyboard() -> None:
+    keyboard_code = client_gui.key_status
+    print(f"{bin(keyboard_code)}")
+
+
 
 if __name__ == '__main__':
     global manager, user_list, client_gui, mySocket, listener_thread, keep_listening
@@ -112,4 +118,9 @@ if __name__ == '__main__':
     client_gui.tell_my_client_to_send_message = send_message
     client_gui.shut_down_socket = close_socket
 
+    keyboard_timer = RepeatTimer(0.01, update_keyboard())
+    keyboard_timer.start()
+
     client_gui.run_loop()
+    keyboard_timer.cancel()
+    print("Done.")

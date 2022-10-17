@@ -35,11 +35,11 @@ class ClientGUI:
         self.root.bind("<KeyPress-d>", self.d_pressed)
         self.root.bind("<KeyRelease-d>", self.d_released)
         self.root.bind("<KeyPress-s>", self.s_pressed)
-        self.root.bind("<KeyRelease-s>", self.s_released())
-        self.root.bind("<KeyPress-w>", self.w_pressed())
-        self.root.bind("<KeyRelease-w>", self.w_released())
-        self.root.bind("<KeyPress-space>", self.space_pressed())
-        self.root.bind("<KeyRelease-space>", self.space_released())
+        self.root.bind("<KeyRelease-s>", self.s_released)
+        self.root.bind("<KeyPress-w>", self.w_pressed)
+        self.root.bind("<KeyRelease-w>", self.w_released)
+        self.root.bind("<KeyPress-space>", self.space_pressed)
+        self.root.bind("<KeyRelease-space>", self.space_released)
 
     def a_pressed(self, event_info):
         self.key_status = self.key_status | 1
