@@ -100,7 +100,7 @@ def game_loop_step() -> None:
     delta_t = now-last_update
     user_dictionary_lock.acquire()
     for user_id in user_dictionary:
-        user_dictionary[id]["PlayerShip"].update(delta_t)
+        user_dictionary[user_id]["PlayerShip"].update(delta_t)
     user_dictionary_lock.release()
     last_update = now
     send_world_update_to_all_users()
