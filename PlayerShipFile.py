@@ -17,6 +17,7 @@ class PlayerShip:
         self.bearing = random.random() * 2 * math.pi - math.pi
         self.controls = 0
         self.my_id = id
+        self.health = 100
 
     def update(self, delta_t:float) -> None:
         self.x += self.vx * delta_t
@@ -40,3 +41,6 @@ class PlayerShip:
     def __repr__(self):
         return f"id: {self.my_id}\tcontrols{format(self.controls,'#010b')}"
 
+    def public_info(self):
+        thrusting = min(self.controls & 12, 1)
+        return f"{self.my_id}\t{self.x}\t{self.y}\t{self.bearing}\t{thrusting}\t{self.health}"
