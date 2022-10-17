@@ -84,11 +84,12 @@ def listen_to_connection(connection_to_hear: socket, connection_id: int, connect
             else:  # it's a normal message - broadcast it to everybody.
                 broadcast_message_to_all(f"{name}: {message}")
         elif message_type == MessageType.KEY_STATUS:
-            print(message)
+            update_ship_controls(connection_id, int(message))
 
 def update_ship_controls(id: int, new_controls: int) -> None:
     user_dictionary_lock.acquire()
     user_dictionary[id]["PlayerShip"].controls = new_controls
+    print(user_dictionary)
     user_dictionary_lock.release()
 
 if __name__ == '__main__':
