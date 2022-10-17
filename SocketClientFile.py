@@ -28,9 +28,27 @@ def listen_for_messages(connection: socket) -> None:
             handle_receive_submission(message)
         elif message_type == MessageType.USER_LIST:
             handle_user_list_update(message)
+        elif message_type == MessageType.WORLD_UPDATE:
+            handle_world_update(message)
 
     print("listen_for_messages is over.")
 
+
+def handle_world_update(tab_delimited_world_list_string: str) -> None:
+    global world_contents
+    world_contents = []
+    lines = tab_delimited_world_list_string.split("\n")
+    for line in lines:
+        values = line.split("\t")
+        game_object = {}
+        game_object["type"] = values[0]
+        game_object["id"] = int(values[1])
+        game_object["x"] = int(values[2])
+        game_object["y"] = int(values[3])
+        game_object["bearing"] = float(values[4])
+        game_object["thrusting"] = values[5] == 1
+        game_object["health"] = int(values[6])
+        world_contents.append(game_object)
 
 def handle_user_list_update(tab_delimited_user_list_string:str) -> None:
     """
@@ -102,6 +120,8 @@ def update_keyboard() -> None:
 
 if __name__ == '__main__':
     global manager, user_list, client_gui, mySocket, listener_thread, keep_listening
+    global world_contents
+    world_contents = []
     client_gui = ClientGUI()
     user_list = []
     mySocket = socket.socket()
