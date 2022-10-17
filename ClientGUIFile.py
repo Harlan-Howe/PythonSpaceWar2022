@@ -2,10 +2,12 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 from typing import List
+import time
 
 
 class ClientGUI:
     def __init__(self):
+
         self.root = tk.Tk()
         self.root.title("Client")
         self.root.geometry('800x800+50+50')  # an 800 x 800 window, offset on screen by (50, 50).
@@ -16,12 +18,68 @@ class ClientGUI:
         self.chat_so_far = ""
         self.chat_response_text = None
 
+        self.key_status = 0
+        self.setup_key_listening()
+
         self.build_GUI_elements()
 
         # these are two additional methods (yes, really!) that will be set by an external class so that we can call them
         # from inside this class once they have been set. But for now, they're None.
         self.shut_down_socket = None
         self.tell_my_client_to_send_message = None
+
+
+    def setup_key_listening(self):
+        self.root.bind("<KeyPress-a>", self.a_pressed)
+        self.root.bind("<KeyRelease-a>", self.a_released)
+        self.root.bind("<KeyPress-d>", self.d_pressed)
+        self.root.bind("<KeyRelease-d>", self.d_released)
+        self.root.bind("<KeyPress-s>", self.s_pressed)
+        self.root.bind("<KeyRelease-s>", self.s_released())
+        self.root.bind("<KeyPress-w>", self.w_pressed())
+        self.root.bind("<KeyRelease-w>", self.w_released())
+        self.root.bind("<KeyPress-space>", self.space_pressed())
+        self.root.bind("<KeyRelease-space>", self.space_released())
+
+    def a_pressed(self, event_info):
+        self.key_status = self.key_status | 1
+        # print(f"{self.key_status}\t{recent-self.last_key_update}")
+
+    def a_released(self, event_info):
+        self.key_status = self.key_status & 254
+        # print(f"{self.key_status}\t{recent - self.last_key_update}")
+
+    def d_pressed(self, event_info):
+        self.key_status = self.key_status | 2
+        # print(self.key_status)
+
+    def d_released(self, event_info):
+        self.key_status = self.key_status & 253
+        # print(self.key_status)
+
+    def s_pressed(self, event_info):
+        self.key_status = self.key_status | 4
+        # print(f"{self.key_status}\t{recent - self.last_key_update}")
+
+    def s_released(self, event_info):
+        self.key_status = self.key_status & 251
+        # print(f"{self.key_status}\t{recent - self.last_key_update}")
+
+    def w_pressed(self, event_info):
+        self.key_status = self.key_status | 8
+        # print(self.key_status)
+
+    def w_released(self, event_info):
+        self.key_status = self.key_status & 247
+        # print(self.key_status)
+
+    def space_pressed(self, event_info):
+        self.key_status = self.key_status | 16
+        # print(self.key_status)
+
+    def space_released(self, event_info):
+        self.key_status = self.key_status & 239
+        # print(self.key_status)
 
     def build_GUI_elements(self) -> None:
         """
