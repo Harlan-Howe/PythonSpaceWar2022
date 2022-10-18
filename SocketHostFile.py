@@ -79,7 +79,7 @@ def listen_to_connection(connection_to_hear: socket, connection_id: int, connect
                 manager.send_message_to_socket(f"Welcome, {name}!", connection_to_hear)
                 user_dictionary_lock.acquire()
                 user_dictionary[connection_id]["name"] = name
-                user_dictionary[connection_id]["PlayerShip"] = PlayerShip(connection_id)
+                user_dictionary[connection_id]["PlayerShip"] = PlayerShip(connection_id, name)
                 user_dictionary_lock.release()
                 broadcast_message_to_all(f"{'-'*6} {name} has joined the conversation. {'-'*6} ")
                 send_user_list_to_all()
