@@ -176,7 +176,7 @@ class ClientGUI:
             self.user_entry_string.set("")
 
     def update_world(self, world_list):
-        self.world_canvas.delete("all")
+        # self.world_canvas.delete("all")
         for item in world_list:
             if item["type"] == "PLAYER":
                 user_id = int(item["id"])
@@ -185,8 +185,14 @@ class ClientGUI:
                 bearing = float(item["bearing"])
                 is_thrusting = int(item["thrusting"]) == 1
                 health = int(item["health"])
-
-                self.world_canvas.create_oval(x-5, y-5, x+5, y+5, fill=item["color"])
-                self.world_canvas.create_line(x, y, int(x + 5 * math.cos(bearing)), int(y + 5 * math.sin(bearing)),
-                                              fill="black", width=2)
+                tag = f"PLAYER{user_id}"
+                my_ship_list = self.world_canvas.find_withtag(tag)
+                if len(my_ship_list) == 0:
+                    self.world_canvas.create_line(x, y, int(x + 5 * math.cos(bearing)), int(y + 5 * math.sin(bearing)),
+                                              fill=item['color'], width=2, arrow='last', arrowshape=(7, 11, 5),
+                                              tag=tag)
+                else:
+                    self.world_canvas.coords(my_ship_list[0], x, y,
+                                                 int(x + 5 * math.cos(bearing)),
+                                                 int(y + 5 * math.sin(bearing)))
 
