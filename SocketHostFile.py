@@ -135,7 +135,7 @@ if __name__ == '__main__':
     print("Socket is listening.")
 
     last_update = time.time()
-    game_loop_timer = RepeatTimer(0.03, game_loop_step)
+    game_loop_timer = RepeatTimer(0.01, game_loop_step)
     game_loop_timer.start()
 
     while True:
