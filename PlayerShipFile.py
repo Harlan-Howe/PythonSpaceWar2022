@@ -2,7 +2,7 @@ import math
 import random
 
 
-angular_velocity = 2 * math.pi
+angular_velocity = 1.5 * math.pi
 acceleration = 30
 max_v = 30
 max_v_squared = max_v **2
@@ -19,14 +19,15 @@ class PlayerShip:
         self.my_id = id
         self.health = 100
 
-    def update(self, delta_t:float) -> None:
+    def update(self, delta_t: float) -> None:
         self.x += self.vx * delta_t
         self.y += self.vy * delta_t
         self.x = (self.x + 800) % 800
         self.y = (self.y + 800) % 800
 
-        self.bearing += angular_velocity * delta_t
-        self.bearing = (self.bearing + 1.5 * math.pi) % (2*math.pi) - math.pi
+        angular_thrust = ((self.controls & 2)/2 - (self.controls & 1))
+        self.bearing += angular_velocity * delta_t * angular_thrust
+        # self.bearing = (self.bearing + 3 * math.pi) % (2*math.pi) - math.pi
 
         thrust = ((self.controls & 8) / 8 - (self.controls & 4) / 4) * acceleration
         self.vx += thrust * math.cos(self.bearing) * delta_t
