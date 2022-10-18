@@ -11,7 +11,7 @@ class ClientGUI:
 
         self.root = tk.Tk()
         self.root.title("Client")
-        self.root.geometry('900x800+50+50')  # an 800 x 800 window, offset on screen by (50, 50).
+        self.root.geometry('1000x850+50+50')  # an 1000 x 850 window, offset on screen by (50, 50).
 
         self.user_entry_string = None
         self.text_field = None
@@ -117,7 +117,7 @@ class ClientGUI:
 
         # This is where the graphics will go...
         self.world_canvas = tk.Canvas(self.root, width = 800, height = 800, background = "black")
-        self.world_canvas.grid(column=1, row=0, sticky="nsew")
+        self.world_canvas.grid(column=1, row=0, sticky="nw")
 
 
     def run_loop(self) -> None:
