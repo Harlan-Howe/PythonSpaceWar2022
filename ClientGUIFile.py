@@ -11,7 +11,7 @@ class ClientGUI:
 
         self.root = tk.Tk()
         self.root.title("Client")
-        self.root.geometry('800x800+50+50')  # an 800 x 800 window, offset on screen by (50, 50).
+        self.root.geometry('900x800+50+50')  # an 800 x 800 window, offset on screen by (50, 50).
 
         self.user_entry_string = None
         self.text_field = None
@@ -179,20 +179,25 @@ class ClientGUI:
         # self.world_canvas.delete("all")
         for item in world_list:
             if item["type"] == "PLAYER":
-                user_id = int(item["id"])
-                x = int(float(item["x"]))
-                y = int(float(item["y"]))
-                bearing = float(item["bearing"])
-                is_thrusting = int(item["thrusting"]) == 1
-                health = int(item["health"])
-                tag = f"PLAYER{user_id}"
-                my_ship_list = self.world_canvas.find_withtag(tag)
-                if len(my_ship_list) == 0:
-                    self.world_canvas.create_line(x, y, int(x + 5 * math.cos(bearing)), int(y + 5 * math.sin(bearing)),
-                                              fill=item['color'], width=2, arrow='last', arrowshape=(7, 11, 5),
-                                              tag=tag)
-                else:
-                    self.world_canvas.coords(my_ship_list[0], x, y,
-                                                 int(x + 5 * math.cos(bearing)),
-                                                 int(y + 5 * math.sin(bearing)))
+                self.draw_player(item)
+
+    def draw_player(self, item):
+        user_id = int(item["id"])
+        x = int(float(item["x"]))
+        y = int(float(item["y"]))
+        bearing = float(item["bearing"])
+        is_thrusting = int(item["thrusting"]) == 1
+        health = int(item["health"])
+        tag = f"PLAYER{user_id}"
+        my_ship_list = self.world_canvas.find_withtag(tag)
+        if len(my_ship_list) == 0:
+            self.world_canvas.create_line(x, y, int(x + 5 * math.cos(bearing)), int(y + 5 * math.sin(bearing)),
+                                          fill=item['color'], width=2, arrow='last', arrowshape=(7, 11, 5),
+                                          tag=tag)
+            self.world_canvas.create_text(x, y-15, text="test", justify='center', tag=tag+"name", fill="white")
+        else:
+            self.world_canvas.coords(my_ship_list[0], x, y,
+                                     int(x + 5 * math.cos(bearing)),
+                                     int(y + 5 * math.sin(bearing)))
+            self.world_canvas.coords(tag+"name", x, y-15)
 
