@@ -1,3 +1,4 @@
+import random
 import socket
 import threading
 
@@ -7,7 +8,7 @@ from SocketMessageIOFile import SocketMessageIO, MessageType
 
 host_URL = '127.0.0.1'
 port = 3000
-
+color_dictionary = {}
 
 def listen_for_messages(connection: socket) -> None:
     """
@@ -49,6 +50,10 @@ def handle_world_update(tab_delimited_world_list_string: str) -> None:
             game_object["bearing"] = float(values[4])
             game_object["thrusting"] = values[5] == 1
             game_object["health"] = int(values[6])
+            if game_object["id"] not in color_dictionary:
+                color_dictionary[game_object["id"]] = "#" + \
+                    f"{random.randrange(64, 255):02X}{random.randrange(64, 255):02X}{random.randrange(64, 255):02X}"
+            game_object["color"] = color_dictionary[game_object["id"]]
         world_contents.append(game_object)
     client_gui.update_world(world_contents)
 

@@ -4,7 +4,7 @@ import random
 
 angular_velocity = 1.5 * math.pi
 acceleration = 30
-max_v = 30
+max_v = 60
 max_v_squared = max_v **2
 
 class PlayerShip:

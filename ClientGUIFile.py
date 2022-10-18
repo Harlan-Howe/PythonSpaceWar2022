@@ -185,7 +185,8 @@ class ClientGUI:
                 bearing = float(item["bearing"])
                 is_thrusting = int(item["thrusting"]) == 1
                 health = int(item["health"])
-                self.world_canvas.create_oval(x-5, y-5, x+5, y+5, fill="red")
+
+                self.world_canvas.create_oval(x-5, y-5, x+5, y+5, fill=item["color"])
                 self.world_canvas.create_line(x, y, int(x + 5 * math.cos(bearing)), int(y + 5 * math.sin(bearing)),
                                               fill="black", width=2)
 
