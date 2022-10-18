@@ -140,7 +140,7 @@ if __name__ == '__main__':
     client_gui.tell_my_client_to_send_message = send_message
     client_gui.shut_down_socket = close_socket
 
-    keyboard_timer = RepeatTimer(0.5, update_keyboard)
+    keyboard_timer = RepeatTimer(0.1, update_keyboard)
     keyboard_timer.start()
 
     client_gui.run_loop()
