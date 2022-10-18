@@ -9,7 +9,7 @@ max_v_squared = max_v **2
 
 class PlayerShip:
 
-    def __init__(self, id:int):
+    def __init__(self, id:int, name:str):
         self.x = random.randrange(800)
         self.y = random.randrange(800)
         self.vx = 0
@@ -18,6 +18,7 @@ class PlayerShip:
         self.controls = 0
         self.my_id = id
         self.health = 100
+        self.name = name
 
     def update(self, delta_t: float) -> None:
         self.x += self.vx * delta_t
@@ -44,4 +45,4 @@ class PlayerShip:
 
     def public_info(self):
         thrusting = min(self.controls & 12, 1)
-        return f"PLAYER\t{self.my_id}\t{self.x}\t{self.y}\t{self.bearing}\t{thrusting}\t{self.health}"
+        return f"PLAYER\t{self.my_id}\t{self.x}\t{self.y}\t{self.bearing}\t{thrusting}\t{self.health}\t{self.name}"
