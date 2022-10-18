@@ -48,8 +48,9 @@ def handle_world_update(tab_delimited_world_list_string: str) -> None:
             game_object["x"] = float(values[2])
             game_object["y"] = float(values[3])
             game_object["bearing"] = float(values[4])
-            game_object["thrusting"] = values[5] == 1
+            game_object["thrusting"] = (int(values[5]) == 1)
             game_object["health"] = int(values[6])
+            game_object["name"] = values[7]
             if game_object["id"] not in color_dictionary:
                 color_dictionary[game_object["id"]] = "#" + \
                     f"{random.randrange(64, 255):02X}{random.randrange(64, 255):02X}{random.randrange(64, 255):02X}"

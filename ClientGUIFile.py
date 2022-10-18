@@ -1,4 +1,5 @@
 import math
+import random
 import tkinter as tk
 from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
@@ -182,22 +183,48 @@ class ClientGUI:
                 self.draw_player(item)
 
     def draw_player(self, item):
+
+        # pull info from item dictionary
         user_id = int(item["id"])
         x = int(float(item["x"]))
         y = int(float(item["y"]))
         bearing = float(item["bearing"])
-        is_thrusting = int(item["thrusting"]) == 1
+        is_thrusting = item["thrusting"]
+
         health = int(item["health"])
+        bar_length = int(health*25/100)
+        # construct tag used to identify the object in the canvas
         tag = f"PLAYER{user_id}"
+        # find the object, if it exists.
         my_ship_list = self.world_canvas.find_withtag(tag)
-        if len(my_ship_list) == 0:
+        if len(my_ship_list) == 0: # if nothing with the tag exists on screen, make it.
+            self.world_canvas.create_line(x, y, int(x - 5*math.cos(bearing)), int(y- 5 * math.sin(bearing)),
+                                          fill="black", width=1, arrow='last', arrowshape=(4, 6, 2),
+                                          tag=tag+"thrust")
+            # ship arrow
             self.world_canvas.create_line(x, y, int(x + 5 * math.cos(bearing)), int(y + 5 * math.sin(bearing)),
                                           fill=item['color'], width=2, arrow='last', arrowshape=(7, 11, 5),
                                           tag=tag)
-            self.world_canvas.create_text(x, y-15, text="test", justify='center', tag=tag+"name", fill="white")
-        else:
+            # name
+            self.world_canvas.create_text(x, y-15, text=item["name"], justify='center', tag=tag+"name", fill="white")
+            # healthbar
+            self.world_canvas.create_line(x-bar_length/2, y+10, x+bar_length/2, y+10, tag=tag+"health", fill="green")
+        else: # we found the item by its tag, so modify it.
+            self.world_canvas.coords(tag+"thrust", x, y,
+                                     int(x - 8 * math.cos(bearing)),
+                                     int(y - 8 * math.sin(bearing)))
             self.world_canvas.coords(my_ship_list[0], x, y,
                                      int(x + 5 * math.cos(bearing)),
                                      int(y + 5 * math.sin(bearing)))
-            self.world_canvas.coords(tag+"name", x, y-15)
 
+            self.world_canvas.coords(tag+"name", x, y-15)
+            self.world_canvas.coords(tag+"health", x-bar_length/2, y+10, x+bar_length/2, y+10)
+            if health < 20:
+                self.world_canvas.itemconfig(tag+"health", fill="red")
+            else:
+                self.world_canvas.itemconfig(tag + "health", fill="green")
+            if is_thrusting:
+                self.world_canvas.itemconfig(tag+ "thrust", fill= "#" + \
+                    f"FF{random.randrange(64, 255):02X}00")
+            else:
+                self.world_canvas.itemconfig(tag+ "thrust", fill="black")
