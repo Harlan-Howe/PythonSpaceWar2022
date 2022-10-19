@@ -23,4 +23,5 @@ class Bullet:
         self.y = (self.y + 800) % 800
         self.lifetime -= delta_t
 
-
+    def has_expired(self) -> bool:
+        return self.lifetime <= 0
