@@ -228,3 +228,11 @@ class ClientGUI:
                     f"FF{random.randrange(64, 255):02X}00")
             else:
                 self.world_canvas.itemconfig(tag+ "thrust", fill="black")
+
+    def delete_item_from_world(self, item_type: str, object_id: int) -> None:
+        if item_type == "PLAYER":
+            tag = f"PLAYER{object_id}"
+            self.world_canvas.delete(tag)
+            self.world_canvas.delete(tag+"name")
+            self.world_canvas.delete(tag+"thrust")
+            self.world_canvas.delete(tag+"health")
