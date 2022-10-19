@@ -14,7 +14,7 @@ class Bullet:
         return f"BULLET\t{self.bullet_id}\t{self.x}\t{self.y}\t{self.vx}\t{self.vy}\t{owner_id}"
 
     def __repr__(self):
-        return self.public_info()
+        return self.public_info()+f"\t{self.lifetime}"
 
     def update(self, delta_t: float) -> None:
         self.x += self.vx * delta_t
