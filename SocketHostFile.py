@@ -66,9 +66,11 @@ def listen_to_connection(connection_to_hear: socket, connection_id: int, connect
         except (ConnectionAbortedError, ConnectionResetError):
             print(f"{name} just disconnected.")
             user_dictionary_lock.acquire()
+            item_to_delete = user_dictionary[connection_id]['PlayerShip'].public_info()
             del user_dictionary[connection_id]
             user_dictionary_lock.release()
             broadcast_message_to_all(f"{'-'*6} {name} has left the conversation. {'-'*6} ")
+            broadcast_message_to_all(item_to_delete, MessageType.DELETE_ITEMS)
             send_user_list_to_all()
             return
 
