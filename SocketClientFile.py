@@ -31,9 +31,22 @@ def listen_for_messages(connection: socket) -> None:
             handle_user_list_update(message)
         elif message_type == MessageType.WORLD_UPDATE:
             handle_world_update(message)
+        elif message_type == MessageType.DELETE_ITEMS:
+            handle_delete_items(message)
 
     print("listen_for_messages is over.")
 
+def handle_delete_items(tab_delimited_world_list_string: str) -> None:
+    lines = tab_delimited_world_list_string.split("\n")
+    for line in lines:
+        values = line.split("\t")
+        if values[0] == "PLAYER":
+            user_id = values[1]
+            for item in world_contents:
+                if item["id"] == user_id:
+                    world_contents.remove(item)
+                    break
+            client_gui.delete_item_from_world(item_type = "PLAYER", object_id = user_id)
 
 def handle_world_update(tab_delimited_world_list_string: str) -> None:
     global world_contents
