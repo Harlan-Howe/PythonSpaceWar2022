@@ -9,6 +9,7 @@ class MessageType(Enum):
     USER_LIST = 2
     KEY_STATUS = 3
     WORLD_UPDATE = 4
+    DELETE_ITEMS = 5
 
 
 class SocketMessageIO:
