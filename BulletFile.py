@@ -11,10 +11,10 @@ class Bullet:
         self.lifetime = lifetime
 
     def public_info(self) -> str:
-        return f"BULLET\t{self.bullet_id}\t{self.x}\t{self.y}\t{self.vx}\t{self.vy}\t{owner_id}"
+        return f"BULLET\t{self.bullet_id}\t{self.x}\t{self.y}\t{self.owner_id}"
 
     def __repr__(self):
-        return self.public_info()+f"\t{self.lifetime}"
+        return f"BULLET\t{self.bullet_id=}\t{self.x=}\t{self.y=}\t{self.vx=}\t{self.vy=}\t{self.owner_id=}\t{self.lifetime=}"
 
     def update(self, delta_t: float) -> None:
         self.x += self.vx * delta_t
