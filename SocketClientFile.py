@@ -68,6 +68,12 @@ def handle_world_update(tab_delimited_world_list_string: str) -> None:
                 color_dictionary[game_object["id"]] = "#" + \
                     f"{random.randrange(64, 255):02X}{random.randrange(64, 255):02X}{random.randrange(64, 255):02X}"
             game_object["color"] = color_dictionary[game_object["id"]]
+        if values[0] == "BULLET":
+            game_object["id"] = int(values[1])
+            game_object["x"] = float(values[2])
+            game_object["y"] = float(values[3])
+            game_object["owner_id"] = int(values[4])
+
         world_contents.append(game_object)
     client_gui.update_world(world_contents)
 
