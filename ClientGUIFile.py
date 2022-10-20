@@ -185,12 +185,15 @@ class ClientGUI:
                 self.draw_bullet(item)
 
     def draw_bullet(self, item):
-        bullet_id = f"BULLET{item['id']}"
+        tag = f"BULLET{item['id']}"
         x = int(float(item["x"]))
         y = int(float(item["y"]))
+        if len(self.world_canvas.find_withtag(tag)) == 0:
+            self.world_canvas.create_oval(x-1, y-1, x+1, y+1, fill="white", tag=bullet_id)
+        else:
+            self.world_canvas.coords(tag,x-1, y-1, x+1, y+1)
 
     def draw_player(self, item):
-
         # pull info from item dictionary
         user_id = int(item["id"])
         x = int(float(item["x"]))
