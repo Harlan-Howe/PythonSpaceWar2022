@@ -181,6 +181,13 @@ class ClientGUI:
         for item in world_list:
             if item["type"] == "PLAYER":
                 self.draw_player(item)
+            elif item["type"] == "BULLET":
+                self.draw_bullet(item)
+
+    def draw_bullet(self, item):
+        bullet_id = f"BULLET{item['id']}"
+        x = int(float(item["x"]))
+        y = int(float(item["y"]))
 
     def draw_player(self, item):
 
