@@ -109,14 +109,17 @@ def game_loop_step() -> None:
         if user_dictionary[user_id]["PlayerShip"].controls & 16 == 16:
             handle_fire(user_dictionary[user_id]["PlayerShip"])
     user_dictionary_lock.release()
-    for i in range(len(bullet_list)):
-        b = bullet_list[i]
+    bullets_to_remove = []
+    for b in bullet_list:
         b.update(delta_t)
         if b.has_expired():
-            del(bullet_list[i])
-            non_user_objects.remove(b)
-            items_to_delete.append(b.public_info)
-            i -= 1
+            bullets_to_remove.append(b)
+
+    for b in bullets_to_remove:
+        bullet_list.remove(b)
+        non_user_objects.remove(b)
+        items_to_delete.append(b.public_info)
+
 
 
     last_update = now
