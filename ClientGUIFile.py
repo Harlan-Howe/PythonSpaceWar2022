@@ -189,9 +189,9 @@ class ClientGUI:
         x = int(float(item["x"]))
         y = int(float(item["y"]))
         if len(self.world_canvas.find_withtag(tag)) == 0:
-            self.world_canvas.create_oval(x-1, y-1, x+1, y+1, fill="white", outline="", tag=tag)
+            self.world_canvas.create_oval(x-2, y-2, x+2, y+2, fill="white", outline="", tag=tag)
         else:
-            self.world_canvas.coords(tag, x-1, y-1, x+1, y+1)
+            self.world_canvas.coords(tag, x-2, y-2, x+2, y+2)
 
     def draw_player(self, item):
         # pull info from item dictionary
