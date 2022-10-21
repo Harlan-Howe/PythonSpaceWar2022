@@ -99,42 +99,51 @@ def update_ship_controls(id: int, new_controls: int) -> None:
     user_dictionary_lock.release()
 
 def game_loop_step() -> None:
-    global last_update
+    global last_update, items_to_delete
     items_to_delete = []
     now = time.time()
     delta_t = now-last_update
-    user_dictionary_lock.acquire()
-    for user_id in user_dictionary:
-        user_dictionary[user_id]["PlayerShip"].update(delta_t)
-        if user_dictionary[user_id]["PlayerShip"].controls & 16 == 16:
-            handle_fire(user_dictionary[user_id]["PlayerShip"])
-    user_dictionary_lock.release()
+    manage_step_for_users(delta_t)
+    manage_step_for_bullets(delta_t)
+
+    last_update = now
+    send_world_update_to_all_users()
+    send_items_to_delete_to_all_users()
+
+
+def send_items_to_delete_to_all_users():
+    deletable_items_descriptions = ""
+    for item in items_to_delete:
+        deletable_items_descriptions += item + "\n"
+    if (len(items_to_delete) > 0):
+        broadcast_message_to_all(deletable_items_descriptions, MessageType.DELETE_ITEMS)
+
+
+def manage_step_for_bullets(delta_t):
     bullets_to_remove = []
     for b in bullet_list:
         b.update(delta_t)
         if b.has_expired():
             bullets_to_remove.append(b)
-
     for b in bullets_to_remove:
         bullet_list.remove(b)
         non_user_objects.remove(b)
         items_to_delete.append(b.public_info())
 
 
+def manage_step_for_users(delta_t):
+    user_dictionary_lock.acquire()
+    for user_id in user_dictionary:
+        user_dictionary[user_id]["PlayerShip"].update(delta_t)
+        if user_dictionary[user_id]["PlayerShip"].controls & 16 == 16:
+            handle_fire(user_dictionary[user_id]["PlayerShip"])
+    user_dictionary_lock.release()
 
-    last_update = now
-    send_world_update_to_all_users()
-    deleteable_items_descriptions = ""
-    for item in items_to_delete:
-        deleteable_items_descriptions += item+"\n"
-    if (len(items_to_delete)>0):
-        broadcast_message_to_all(deleteable_items_descriptions, MessageType.DELETE_ITEMS)
 
 def handle_fire(user:PlayerShip) -> None:
     global latest_id
-    # print("Firing")
     if user.ok_to_fire():
-        muzzle_velocity = 65
+        muzzle_velocity = 85
         latest_id += 1
         bullet = Bullet(x=user.x,
                         y=user.y,
