@@ -69,6 +69,7 @@ def handle_world_update(tab_delimited_world_list_string: str) -> None:
                     f"{random.randrange(64, 255):02X}{random.randrange(64, 255):02X}{random.randrange(64, 255):02X}"
             game_object["color"] = color_dictionary[game_object["id"]]
         if values[0] == "BULLET":
+            # print(f"Bullet handled. {values=} ")
             game_object["id"] = int(values[1])
             game_object["x"] = float(values[2])
             game_object["y"] = float(values[3])

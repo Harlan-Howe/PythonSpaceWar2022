@@ -1,7 +1,9 @@
+import math
 import socket
 import threading
 from typing import Dict
 from PlayerShipFile import PlayerShip
+from BulletFile import Bullet
 from RepeatTimerFile import RepeatTimer
 import time
 
@@ -98,14 +100,47 @@ def update_ship_controls(id: int, new_controls: int) -> None:
 
 def game_loop_step() -> None:
     global last_update
+    items_to_delete = []
     now = time.time()
     delta_t = now-last_update
     user_dictionary_lock.acquire()
     for user_id in user_dictionary:
         user_dictionary[user_id]["PlayerShip"].update(delta_t)
+        if user_dictionary[user_id]["PlayerShip"].controls & 16 == 16:
+            handle_fire(user_dictionary[user_id]["PlayerShip"])
     user_dictionary_lock.release()
+    for i in range(len(bullet_list)):
+        b = bullet_list[i]
+        b.update(delta_t)
+        if b.has_expired():
+            del(bullet_list[i])
+            non_user_objects.remove(b)
+            items_to_delete.append(b.public_info)
+            i -= 1
+
+
     last_update = now
     send_world_update_to_all_users()
+    if (len(items_to_delete)>0):
+        broadcast_message_to_all(items_to_delete, MessageType.DELETE_ITEMS)
+
+def handle_fire(user:PlayerShip) -> None:
+    global latest_id
+    # print("Firing")
+    muzzle_velocity = 65
+    latest_id += 1
+    bullet = Bullet(x=user.x,
+                    y=user.y,
+                    vx=user.vx+muzzle_velocity*math.cos(user.bearing),
+                    vy=user.vy+muzzle_velocity*math.sin(user.bearing),
+                    owner_id=user.my_id,
+                    bullet_id=latest_id,
+                    lifetime=1.25
+                    )
+    bullet_list.append(bullet)
+    non_user_objects.append(bullet)
+
+
 
 def send_world_update_to_all_users() -> None:
     message = ""
@@ -113,10 +148,17 @@ def send_world_update_to_all_users() -> None:
     for user_id in user_dictionary:
         message += f"{user_dictionary[user_id]['PlayerShip'].public_info()}\n"
     user_dictionary_lock.release()
+    for obj in non_user_objects:
+        message += f"{obj.public_info()}\n"
+        # print(f"Sending: {obj.public_info=}")
     broadcast_message_to_all(message, MessageType.WORLD_UPDATE)
 
 if __name__ == '__main__':
     global user_dictionary, user_dictionary_lock, latest_id, broadcast_manager, last_update
+    global bullet_list, non_user_objects
+    bullet_list= []
+    non_user_objects = []
+
     broadcast_manager = None
     latest_id = 0
 
