@@ -7,7 +7,7 @@ from RepeatTimerFile import RepeatTimer
 from SocketMessageIOFile import SocketMessageIO, MessageType
 
 host_URL = '127.0.0.1'
-port = 3000
+port = 3001
 color_dictionary = {}
 
 def listen_for_messages(connection: socket) -> None:
