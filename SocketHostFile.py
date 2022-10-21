@@ -139,7 +139,7 @@ def handle_fire(user:PlayerShip) -> None:
                         vy=user.vy+muzzle_velocity*math.sin(user.bearing),
                         owner_id=user.my_id,
                         bullet_id=latest_id,
-                        lifetime=1.25
+                        lifetime=3.25
                         )
         bullet_list.append(bullet)
         non_user_objects.append(bullet)
