@@ -39,14 +39,28 @@ def listen_for_messages(connection: socket) -> None:
 def handle_delete_items(tab_delimited_world_list_string: str) -> None:
     lines = tab_delimited_world_list_string.split("\n")
     for line in lines:
+        if line == "":
+            continue
         values = line.split("\t")
-        if values[0] == "PLAYER":
-            user_id = values[1]
-            for item in world_contents:
+        print(f"deleting {values=}")
+        user_id = int(values[1])
+        for item in world_contents:
+
+            try:
+                print(f"Attempting match: {item['id']=} and {user_id=}; {item=}")
                 if item["id"] == user_id:
+                    print("matched.")
                     world_contents.remove(item)
+                    client_gui.delete_item_from_world(item_type=values[0], object_id=user_id)
                     break
-            client_gui.delete_item_from_world(item_type = "PLAYER", object_id = user_id)
+            except KeyError:
+                print(f"Exception: {item=}")
+
+
+
+
+
+
 
 def handle_world_update(tab_delimited_world_list_string: str) -> None:
     global world_contents
@@ -56,6 +70,8 @@ def handle_world_update(tab_delimited_world_list_string: str) -> None:
         values = line.split("\t")
         game_object = {}
         game_object["type"] = values[0]
+        if values[0] == "":
+            continue
         if values[0] == "PLAYER":
             game_object["id"] = int(values[1])
             game_object["x"] = float(values[2])

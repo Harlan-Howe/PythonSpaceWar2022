@@ -118,14 +118,17 @@ def game_loop_step() -> None:
     for b in bullets_to_remove:
         bullet_list.remove(b)
         non_user_objects.remove(b)
-        items_to_delete.append(b.public_info)
+        items_to_delete.append(b.public_info())
 
 
 
     last_update = now
     send_world_update_to_all_users()
+    deleteable_items_descriptions = ""
+    for item in items_to_delete:
+        deleteable_items_descriptions += item+"\n"
     if (len(items_to_delete)>0):
-        broadcast_message_to_all(items_to_delete, MessageType.DELETE_ITEMS)
+        broadcast_message_to_all(deleteable_items_descriptions, MessageType.DELETE_ITEMS)
 
 def handle_fire(user:PlayerShip) -> None:
     global latest_id

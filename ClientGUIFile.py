@@ -246,3 +246,8 @@ class ClientGUI:
             self.world_canvas.delete(tag+"name")
             self.world_canvas.delete(tag+"thrust")
             self.world_canvas.delete(tag+"health")
+        else:
+            print(f"Deleting something else: {item_type=}, {object_id=}")
+        if item_type == "BULLET":
+            tag = f"BULLET{object_id}"
+            self.world_canvas.delete(tag)
