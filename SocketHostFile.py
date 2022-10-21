@@ -8,7 +8,7 @@ from RepeatTimerFile import RepeatTimer
 import time
 
 from SocketMessageIOFile import SocketMessageIO, MessageType
-port = 3000
+port = 3001
 
 def broadcast_message_to_all(message: str, message_type=MessageType.SUBMISSION) -> None:
     """
@@ -68,8 +68,9 @@ def listen_to_connection(connection_to_hear: socket, connection_id: int, connect
         except (ConnectionAbortedError, ConnectionResetError):
             print(f"{name} just disconnected.")
             user_dictionary_lock.acquire()
-            item_to_delete = user_dictionary[connection_id]['PlayerShip'].public_info()
-            del user_dictionary[connection_id]
+            if "PlayerShip" in user_dictionary[connection_id]:
+                item_to_delete = user_dictionary[connection_id]['PlayerShip'].public_info()
+                del user_dictionary[connection_id]
             user_dictionary_lock.release()
             broadcast_message_to_all(f"{'-'*6} {name} has left the conversation. {'-'*6} ")
             broadcast_message_to_all(item_to_delete, MessageType.DELETE_ITEMS)
@@ -103,13 +104,32 @@ def game_loop_step() -> None:
     items_to_delete = []
     now = time.time()
     delta_t = now-last_update
+
+    # do updates etc. for each type of object
     manage_step_for_users(delta_t)
     manage_step_for_bullets(delta_t)
+    check_for_bullet_player_collisions()
+
 
     last_update = now
+
+    # send revised contents of the world to all users.
     send_world_update_to_all_users()
+    # send notification of any items that were deleted.
     send_items_to_delete_to_all_users()
 
+
+def check_for_bullet_player_collisions() -> None:
+    user_dictionary_lock.acquire()
+    for user_id in user_dictionary:
+        for b in bullet_list:
+            if "PlayerShip" in user_dictionary[user_id]:
+                if user_dictionary[user_id]["PlayerShip"].my_id != b.owner_id:
+                    if math.fabs(user_dictionary[user_id]["PlayerShip"].x - b.x) < 8 and math.fabs(user_dictionary[user_id]["PlayerShip"].y - b.y) < 8:
+                        user_dictionary[user_id]["PlayerShip"].health -= 10
+                        b.lifetime = -1
+
+    user_dictionary_lock.release()
 
 def send_items_to_delete_to_all_users():
     deletable_items_descriptions = ""
@@ -134,9 +154,12 @@ def manage_step_for_bullets(delta_t):
 def manage_step_for_users(delta_t):
     user_dictionary_lock.acquire()
     for user_id in user_dictionary:
-        user_dictionary[user_id]["PlayerShip"].update(delta_t)
-        if user_dictionary[user_id]["PlayerShip"].controls & 16 == 16:
-            handle_fire(user_dictionary[user_id]["PlayerShip"])
+        if "PlayerShip" in user_dictionary[user_id]:
+            user_dictionary[user_id]["PlayerShip"].update(delta_t)
+            if user_dictionary[user_id]["PlayerShip"].controls & 16 == 16:
+                handle_fire(user_dictionary[user_id]["PlayerShip"])
+
+
     user_dictionary_lock.release()
 
 
@@ -162,7 +185,8 @@ def send_world_update_to_all_users() -> None:
     message = ""
     user_dictionary_lock.acquire()
     for user_id in user_dictionary:
-        message += f"{user_dictionary[user_id]['PlayerShip'].public_info()}\n"
+        if "PlayerShip" in user_dictionary[user_id]:
+            message += f"{user_dictionary[user_id]['PlayerShip'].public_info()}\n"
     user_dictionary_lock.release()
     for obj in non_user_objects:
         message += f"{obj.public_info()}\n"
