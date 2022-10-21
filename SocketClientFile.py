@@ -42,19 +42,8 @@ def handle_delete_items(tab_delimited_world_list_string: str) -> None:
         if line == "":
             continue
         values = line.split("\t")
-        print(f"deleting {values=}")
         user_id = int(values[1])
-        for item in world_contents:
-
-            try:
-                print(f"Attempting match: {item['id']=} and {user_id=}; {item=}")
-                if item["id"] == user_id:
-                    print("matched.")
-                    world_contents.remove(item)
-                    client_gui.delete_item_from_world(item_type=values[0], object_id=user_id)
-                    break
-            except KeyError:
-                print(f"Exception: {item=}")
+        client_gui.delete_item_from_world(values[0], user_id)
 
 
 
