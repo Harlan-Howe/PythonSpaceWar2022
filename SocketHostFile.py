@@ -130,18 +130,19 @@ def game_loop_step() -> None:
 def handle_fire(user:PlayerShip) -> None:
     global latest_id
     # print("Firing")
-    muzzle_velocity = 65
-    latest_id += 1
-    bullet = Bullet(x=user.x,
-                    y=user.y,
-                    vx=user.vx+muzzle_velocity*math.cos(user.bearing),
-                    vy=user.vy+muzzle_velocity*math.sin(user.bearing),
-                    owner_id=user.my_id,
-                    bullet_id=latest_id,
-                    lifetime=1.25
-                    )
-    bullet_list.append(bullet)
-    non_user_objects.append(bullet)
+    if user.ok_to_fire():
+        muzzle_velocity = 65
+        latest_id += 1
+        bullet = Bullet(x=user.x,
+                        y=user.y,
+                        vx=user.vx+muzzle_velocity*math.cos(user.bearing),
+                        vy=user.vy+muzzle_velocity*math.sin(user.bearing),
+                        owner_id=user.my_id,
+                        bullet_id=latest_id,
+                        lifetime=1.25
+                        )
+        bullet_list.append(bullet)
+        non_user_objects.append(bullet)
 
 
 
