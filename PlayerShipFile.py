@@ -1,6 +1,6 @@
 import math
 import random
-
+import time
 
 angular_velocity = 1.5 * math.pi
 acceleration = 30
@@ -19,6 +19,7 @@ class PlayerShip:
         self.my_id = id
         self.health = 100
         self.name = name
+        self.last_shot_taken = time.time()
 
     def update(self, delta_t: float) -> None:
         self.x += self.vx * delta_t
@@ -39,6 +40,13 @@ class PlayerShip:
             factor = max_v/speed
             self.vx *= factor
             self.vy *= factor
+
+    def ok_to_fire(self) -> bool:
+        now = time.time()
+        if now - self.last_shot_taken > 0.25:
+            self.last_shot_taken = now
+            return True
+        return False
 
     def __repr__(self):
         return f"id: {self.my_id}\tcontrols{format(self.controls,'#010b')}"
