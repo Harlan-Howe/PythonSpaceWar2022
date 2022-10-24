@@ -32,7 +32,7 @@ def send_user_list_to_all() -> None:
     """
     compiles a list of all the users, and the number of users. Builds this as a tab delimited string in format:
          num_users-->user0Name-->user1Name-->user2Name...
-    and sends this to all current sockets.
+    and sends this to all current sockets with the prefix MessageType.USER_LIST
     :return: None
     """
     global user_dictionary_lock, user_dictionary, broadcast_manager
@@ -46,6 +46,7 @@ def send_user_list_to_all() -> None:
         print(f"{user_id=}\t{user_dictionary[user_id]}\t{user_dictionary[user_id]['name']=}")
         list_info += f"\t{user_dictionary[user_id]['name']}"
     user_dictionary_lock.release()
+
     # send that message to every user.
     broadcast_message_to_all(list_info, message_type=MessageType.USER_LIST)
 
@@ -94,22 +95,32 @@ def listen_to_connection(connection_to_hear: socket, connection_id: int, connect
             update_ship_controls(connection_id, int(message))
 
 def update_ship_controls(id: int, new_controls: int) -> None:
+    """
+    We've just received a message from one of the users with an update to which keys they have pressed.
+    :param id: which user this is
+    :param new_controls: an int with binary flags indicating whether left, right, up, down, fire keys are being held.
+    :return: None
+    """
     user_dictionary_lock.acquire()
     user_dictionary[id]["PlayerShip"].controls = new_controls
-    # print(user_dictionary)
     user_dictionary_lock.release()
 
 def game_loop_step() -> None:
+    """
+    perform one iteration of the game loop. Update the locations and states of all the player ships and other items.
+    :return: None
+    """
     global last_update, items_to_delete
-    items_to_delete = []
+    items_to_delete = [] # we're restarting the list of things to delete afresh.
+
+    # calculate the amount of time it has been since the last update.
     now = time.time()
-    delta_t = now-last_update
+    delta_t = now - last_update
 
     # do updates etc. for each type of object
     manage_step_for_users(delta_t)
     manage_step_for_bullets(delta_t)
     check_for_bullet_player_collisions()
-
 
     last_update = now
 
@@ -120,6 +131,10 @@ def game_loop_step() -> None:
 
 
 def check_for_bullet_player_collisions() -> None:
+    """
+    detects whether any bullets have interacted with users. (There is no self-harm - you can't shoot yourself.)
+    :return: None
+    """
     user_dictionary_lock.acquire()
     for user_id in user_dictionary:
         for b in bullet_list:
@@ -127,19 +142,31 @@ def check_for_bullet_player_collisions() -> None:
                 if user_dictionary[user_id]["PlayerShip"].my_id != b.owner_id:
                     if math.fabs(user_dictionary[user_id]["PlayerShip"].x - b.x) < 8 and math.fabs(user_dictionary[user_id]["PlayerShip"].y - b.y) < 8:
                         user_dictionary[user_id]["PlayerShip"].health -= 10
-                        b.lifetime = -1
+                        b.lifetime = -1 # this will kill the bullet on the next cycle.
 
     user_dictionary_lock.release()
 
 def send_items_to_delete_to_all_users():
+    """
+    inform all client users which items they will need to remove from their GUI views.
+    :return: None
+    """
+    # construct a single string with all the objects' public infos.
     deletable_items_descriptions = ""
     for item in items_to_delete:
         deletable_items_descriptions += item + "\n"
-    if (len(items_to_delete) > 0):
+    # send that string (if any)to all the users with the prefix MessageType.DELETE_ITEMS.
+    if len(items_to_delete) > 0:
         broadcast_message_to_all(deletable_items_descriptions, MessageType.DELETE_ITEMS)
 
 
-def manage_step_for_bullets(delta_t):
+def manage_step_for_bullets(delta_t) -> None:
+    """
+    move all bullets by one time step; check whether any of them have expired -- if so, add them to the list of items to
+    delete.
+    :param delta_t: the time expired (in seconds) since the last step.
+    :return: None
+    """
     bullets_to_remove = []
     for b in bullet_list:
         b.update(delta_t)
@@ -151,7 +178,12 @@ def manage_step_for_bullets(delta_t):
         items_to_delete.append(b.public_info())
 
 
-def manage_step_for_users(delta_t):
+def manage_step_for_users(delta_t) -> None:
+    """
+    move all players by one time step, based on their controls. If the user has pressed the fire button, deal with that.
+    :param delta_t: the time expired (in seconds) since the last step.
+    :return: None
+    """
     user_dictionary_lock.acquire()
     for user_id in user_dictionary:
         if "PlayerShip" in user_dictionary[user_id]:
@@ -164,6 +196,12 @@ def manage_step_for_users(delta_t):
 
 
 def handle_fire(user:PlayerShip) -> None:
+    """
+    the user has pressed the fire button. If enough time has expired since the last shot, make a bullet and add it to
+    the lists of bullets and of things to send to the client user to draw via GUI.
+    :param user: which user is trying to fire.
+    :return:  None
+    """
     global latest_id
     if user.ok_to_fire():
         muzzle_velocity = 85
@@ -179,9 +217,11 @@ def handle_fire(user:PlayerShip) -> None:
         bullet_list.append(bullet)
         non_user_objects.append(bullet)
 
-
-
 def send_world_update_to_all_users() -> None:
+    """
+    send a message with a list of the public info of all on-screen objects that should be drawn on-screen.
+    :return: None
+    """
     message = ""
     user_dictionary_lock.acquire()
     for user_id in user_dictionary:
@@ -196,10 +236,15 @@ def send_world_update_to_all_users() -> None:
 if __name__ == '__main__':
     global user_dictionary, user_dictionary_lock, latest_id, broadcast_manager, last_update
     global bullet_list, non_user_objects
+    # initialize lists of objects that the game needs to track.
     bullet_list= []
     non_user_objects = []
 
+    # this is a variable we'll initialize later, when we first need it.
     broadcast_manager = None
+
+    # each on-screen object (players, bullets, asteroids, etc.) has a unique id number. This keeps track of the most
+    # recently assigned one so that we can be sure to give the _next_ number to the next item we create.
     latest_id = 0
 
     # the user_dictionary is a dictionary of dictionaries of all the connected user's names & connections, keyed on
@@ -208,10 +253,10 @@ if __name__ == '__main__':
     #                                        3: {"name":"Milo", "connection": some_socket_connection2},
     #                                        4: {"name":"Opus", "connection": some_socket_connection3}}
     user_dictionary: Dict[int, Dict] = {}
-    user_dictionary_lock = threading.Lock()
+    user_dictionary_lock = threading.Lock()  # this is used to lock user_dictionary, as it might be used by multiple
+                                             # threads.
 
-
-
+    # Start the process of listening for users
     mySocket = socket.socket()
 
     mySocket.bind(('', port))
@@ -219,13 +264,12 @@ if __name__ == '__main__':
     print("Socket is listening.")
 
     last_update = time.time()
-    game_loop_timer = RepeatTimer(0.01, game_loop_step)
+    game_loop_timer = RepeatTimer(0.02, game_loop_step)
     game_loop_timer.start()
 
     while True:
         connection, address = mySocket.accept()  # wait to receive a new socket connection.
-
-        print(f"Got connection from {address}")
+        # print(f"Got connection from {address}")
 
         # start a new thread that will continuously listen for communication from this socket connection.
         latest_id += 1
