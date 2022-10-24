@@ -15,11 +15,6 @@ class ClientGUI:
         self.root.title("Client")
         self.root.geometry('1000x850+50+50')  # an 1000 x 850 window, offset on screen by (50, 50).
 
-        self.user_entry_string = None
-        self.text_field = None
-        self.user_list_text = None
-        self.chat_so_far = ""
-        self.chat_response_text = None
 
         self.key_status = 0
         self.setup_key_listening()
