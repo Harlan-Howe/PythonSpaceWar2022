@@ -5,21 +5,24 @@ from tkinter import ttk
 from tkinter import simpledialog
 from tkinter.scrolledtext import ScrolledText
 from typing import List
-import time
 
+LEFT_MASK = 1
+RIGHT_MASK = 2
+BACK_MASK = 4
+FORWARD_MASK = 8
+FIRE_MASK = 16
 
 class ClientGUI:
     def __init__(self):
-
+        # Create the window
         self.root = tk.Tk()
         self.root.title("Client")
         self.root.geometry('1000x850+50+50')  # an 1000 x 850 window, offset on screen by (50, 50).
+        self.build_GUI_elements()
 
-
+        # setup keyboard listening system
         self.key_status = 0
         self.setup_key_listening()
-
-        self.build_GUI_elements()
 
         # these are two additional methods (yes, really!) that will be set by an external class so that we can call them
         # from inside this class once they have been set. But for now, they're None.
@@ -27,7 +30,11 @@ class ClientGUI:
         self.tell_my_client_to_send_message = None
 
 
-    def setup_key_listening(self):
+    def setup_key_listening(self) -> None:
+        """
+        set up responses to various keyboard actions
+        :return: None
+        """
         self.root.bind("<KeyPress-a>", self.a_pressed)
         self.root.bind("<KeyRelease-a>", self.a_released)
         self.root.bind("<KeyPress-d>", self.d_pressed)
@@ -40,44 +47,35 @@ class ClientGUI:
         self.root.bind("<KeyRelease-space>", self.space_released)
 
     def a_pressed(self, event_info):
-        self.key_status = self.key_status | 1
-        # print(f"{self.key_status}\t{recent-self.last_key_update}")
+        self.key_status = self.key_status | LEFT_MASK
 
     def a_released(self, event_info):
-        self.key_status = self.key_status & 254
-        # print(f"{self.key_status}\t{recent - self.last_key_update}")
+        self.key_status = self.key_status & (255 - LEFT_MASK)
 
     def d_pressed(self, event_info):
-        self.key_status = self.key_status | 2
-        # print(self.key_status)
+        self.key_status = self.key_status | RIGHT_MASK
 
     def d_released(self, event_info):
-        self.key_status = self.key_status & 253
-        # print(self.key_status)
+        self.key_status = self.key_status & (255 - RIGHT_MASK)
 
     def s_pressed(self, event_info):
-        self.key_status = self.key_status | 4
-        # print(f"{self.key_status}\t{recent - self.last_key_update}")
+        self.key_status = self.key_status | BACK_MASK
 
     def s_released(self, event_info):
-        self.key_status = self.key_status & 251
-        # print(f"{self.key_status}\t{recent - self.last_key_update}")
+        self.key_status = self.key_status & (255 - BACK_MASK)
 
     def w_pressed(self, event_info):
-        self.key_status = self.key_status | 8
-        # print(self.key_status)
+        self.key_status = self.key_status | FORWARD_MASK
 
     def w_released(self, event_info):
-        self.key_status = self.key_status & 247
-        # print(self.key_status)
+        self.key_status = self.key_status & (255 - FORWARD_MASK)
 
     def space_pressed(self, event_info):
-        self.key_status = self.key_status | 16
-        # print(self.key_status)
+        self.key_status = self.key_status | FIRE_MASK
 
     def space_released(self, event_info):
-        self.key_status = self.key_status & 239
-        # print(self.key_status)
+        self.key_status = self.key_status & (255 - FIRE_MASK)
+
 
     def build_GUI_elements(self) -> None:
         """
