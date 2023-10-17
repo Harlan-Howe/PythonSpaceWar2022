@@ -16,6 +16,7 @@ class SocketHost:
     def __init__(self):
         self.bullet_list = []
         self.non_user_objects = []
+        self.items_to_delete = []
 
         # this is a variable we'll initialize later, when we first need it.
         self.broadcast_manager = None
@@ -30,10 +31,13 @@ class SocketHost:
         #                                        3: {"name":"Milo", "connection": some_socket_connection2},
         #                                        4: {"name":"Opus", "connection": some_socket_connection3}}
         self.user_dictionary: Dict[int, Dict] = {}
-        self.user_dictionary_lock = threading.Lock()  # this is used to lock user_dictionary, as it might be used by multiple
-        # threads.
+        self.user_dictionary_lock = threading.Lock()  # this is used to lock user_dictionary, as it might be used
+        # by multiple threads.
 
-
+        # variables we'll define when we start listening:
+        self.my_socket = None
+        self.last_update = time.time()
+        self.game_loop_timer = None
 
     def start_listening(self):
         # Start the process of listening for users
@@ -53,17 +57,17 @@ class SocketHost:
 
             # start a new thread that will continuously listen for communication from this socket connection.
             self.latest_id += 1
-            self.connectionThread = threading.Thread(target=self.listen_to_connection, args=(connection,
+            connectionThread = threading.Thread(target=self.listen_to_connection, args=(connection,
                                                                                         self.latest_id,
                                                                                         address))
 
             self.user_dictionary_lock.acquire()
             self.user_dictionary[self.latest_id] = {"name": "unknown",
-                                          "connection": connection,
-                                          "PlayerShip": PlayerShip(self.latest_id, "Unknown")}
+                                                    "connection": connection,
+                                                    "PlayerShip": PlayerShip(self.latest_id, "Unknown")}
 
             self.user_dictionary_lock.release()
-            self.connectionThread.start()
+            connectionThread.start()
 
     def broadcast_message_to_all(self, message: str, message_type=MessageType.SUBMISSION) -> None:
         """
@@ -73,7 +77,6 @@ class SocketHost:
         itself.
         :return: None
         """
-        global user_dictionary_lock, user_dictionary, broadcast_manager
         if self.broadcast_manager is None:
             self.broadcast_manager = SocketMessageIO()
 
@@ -83,7 +86,6 @@ class SocketHost:
                                                           self.user_dictionary[user_id]["connection"],
                                                           message_type=message_type)
         self.user_dictionary_lock.release()
-
 
     def send_user_list_to_all(self) -> None:
         """
@@ -97,22 +99,22 @@ class SocketHost:
 
         # develop list of online users
         self.user_dictionary_lock.acquire()
-        self.list_info = f"{len(user_dictionary)}"
+        list_info = f"{len(self.user_dictionary)}"
         for user_id in self.user_dictionary:
             print(f"{user_id=}\t{self.user_dictionary[user_id]}\t{self.user_dictionary[user_id]['name']=}")
-            self.list_info += f"\t{self.user_dictionary[user_id]['name']}"
+            list_info += f"\t{self.user_dictionary[user_id]['name']}"
         self.user_dictionary_lock.release()
 
         # send that message to every user.
-        self.broadcast_message_to_all(self.list_info, message_type=MessageType.USER_LIST)
-
+        self.broadcast_message_to_all(list_info, message_type=MessageType.USER_LIST)
 
     def listen_to_connection(self, connection_to_hear: socket, connection_id: int,
                              connection_address: str = None) -> None:
         """
-        a loop intended for a Thread to monitor the given socket and handle any messages that come from it. In this case,
-        it is assumed that the first message received will be the name of the connection, in the format of a packed length
-        of the name and then the name itself. All messages should be in the format of packed length + message.
+        a loop intended for a Thread to monitor the given socket and handle any messages that come from it. In this
+        case, it is assumed that the first message received will be the name of the connection, in the format of a
+        packed length of the name and then the name itself. All messages should be in the format of packed length +
+        message.
         :param connection_to_hear: the socket that will be read from
         :param connection_id: the unique id number of this user.
         :param connection_address: the address of the socket (not currently used)
@@ -127,9 +129,9 @@ class SocketHost:
             except (ConnectionAbortedError, ConnectionResetError):
                 print(f"{name} just disconnected.")
                 self.user_dictionary_lock.acquire()
-                if "PlayerShip" in user_dictionary[connection_id]:
-                    item_to_delete = user_dictionary[connection_id]['PlayerShip'].public_info()
-                    del user_dictionary[connection_id]
+                if "PlayerShip" in self.user_dictionary[connection_id]:
+                    item_to_delete = self.user_dictionary[connection_id]['PlayerShip'].public_info()
+                    del self.user_dictionary[connection_id]
                 self.user_dictionary_lock.release()
                 if item_to_delete is None:
                     continue
@@ -146,7 +148,7 @@ class SocketHost:
                     self.user_dictionary_lock.acquire()
                     self.user_dictionary[connection_id]["name"] = name
                     self.user_dictionary[connection_id]["PlayerShip"].name = name
-                    user_dictionary_lock.release()
+                    self.user_dictionary_lock.release()
                     self.broadcast_message_to_all(f"{'-'*6} {name} has joined the conversation. {'-'*6} ")
                     self.send_user_list_to_all()
                 else:  # it's a normal message - broadcast it to everybody.
@@ -154,15 +156,15 @@ class SocketHost:
             elif message_type == MessageType.KEY_STATUS:
                 self.update_ship_controls(connection_id, int(message))
 
-    def update_ship_controls(self, id: int, new_controls: int) -> None:
+    def update_ship_controls(self, user_id: int, new_controls: int) -> None:
         """
         We've just received a message from one of the users with an update to which keys they have pressed.
-        :param id: which user this is
-        :param new_controls: an int with binary flags indicating whether left, right, up, down, fire keys are being held.
+        :param user_id: which user this is
+        :param new_controls: an int with binary flags indicating whether left, right, up, down, fire keys are held.
         :return: None
         """
         self.user_dictionary_lock.acquire()
-        self.user_dictionary[id]["PlayerShip"].controls = new_controls
+        self.user_dictionary[user_id]["PlayerShip"].controls = new_controls
         self.user_dictionary_lock.release()
 
     def game_loop_step(self, ) -> None:
@@ -170,7 +172,7 @@ class SocketHost:
         perform one iteration of the game loop. Update the locations and states of all the player ships and other items.
         :return: None
         """
-        self.items_to_delete = [] # we're restarting the list of things to delete afresh.
+        self.items_to_delete.clear()  # we're restarting the list of things to delete afresh.
 
         # calculate the amount of time it has been since the last update.
         now = time.time()
@@ -181,13 +183,12 @@ class SocketHost:
         self.manage_step_for_bullets(delta_t)
         self.check_for_bullet_player_collisions()
 
-        last_update = now
+        self.last_update = now
 
         # send revised contents of the world to all users.
         self.send_world_update_to_all_users()
         # send notification of any items that were deleted.
         self.send_items_to_delete_to_all_users()
-
 
     def check_for_bullet_player_collisions(self, ) -> None:
         """
@@ -199,7 +200,8 @@ class SocketHost:
             for b in self.bullet_list:
                 if "PlayerShip" in self.user_dictionary[user_id]:
                     if self.user_dictionary[user_id]["PlayerShip"].my_id != b.owner_id:
-                        if math.fabs(self.user_dictionary[user_id]["PlayerShip"].x - b.x) < 8 and math.fabs(user_dictionary[user_id]["PlayerShip"].y - b.y) < 8:
+                        if (math.fabs(self.user_dictionary[user_id]["PlayerShip"].x - b.x) < 8 and
+                                math.fabs(self.user_dictionary[user_id]["PlayerShip"].y - b.y) < 8):
                             self.user_dictionary[user_id]["PlayerShip"].health -= 10
                             b.lifetime = -1  # this will kill the bullet on the next cycle.
 
@@ -210,7 +212,7 @@ class SocketHost:
         inform all client users which items they will need to remove from their GUI views.
         :return: None
         """
-        # construct a single string with all the objects' public infos.
+        # construct a single string with all the objects' public information states.
         deletable_items_descriptions = ""
         for item in self.items_to_delete:
             deletable_items_descriptions += item + "\n"
@@ -218,11 +220,10 @@ class SocketHost:
         if len(self.items_to_delete) > 0:
             self.broadcast_message_to_all(deletable_items_descriptions, MessageType.DELETE_ITEMS)
 
-
     def manage_step_for_bullets(self, delta_t) -> None:
         """
-        move all bullets by one time step; check whether any of them have expired -- if so, add them to the list of items to
-        delete.
+        move all bullets by one time step; check whether any of them have expired -- if so, add them to the list of
+        items to delete.
         :param delta_t: the time expired (in seconds) since the last step.
         :return: None
         """
@@ -236,10 +237,10 @@ class SocketHost:
             self.non_user_objects.remove(b)
             self.items_to_delete.append(b.public_info())
 
-
     def manage_step_for_users(self, delta_t) -> None:
         """
-        move all players by one time step, based on their controls. If the user has pressed the fire button, deal with that.
+        move all players by one time step, based on their controls. If the user has pressed the fire button, deal with
+         that.
         :param delta_t: the time expired (in seconds) since the last step.
         :return: None
         """
@@ -252,10 +253,10 @@ class SocketHost:
 
         self.user_dictionary_lock.release()
 
-    def handle_fire(self, user:PlayerShip) -> None:
+    def handle_fire(self, user: PlayerShip) -> None:
         """
-        the user has pressed the fire button. If enough time has expired since the last shot, make a bullet and add it to
-        the lists of bullets and of things to send to the client user to draw via GUI.
+        the user has pressed the fire button. If enough time has expired since the last shot, make a bullet and add it
+        to the lists of bullets and of things to send to the client user to draw via GUI.
         :param user: which user is trying to fire.
         :return:  None
         """
@@ -288,6 +289,7 @@ class SocketHost:
             message += f"{obj.public_info()}\n"
             # print(f"Sending: {obj.public_info=}")
         self.broadcast_message_to_all(message, MessageType.WORLD_UPDATE)
+
 
 if __name__ == '__main__':
     host = SocketHost()
