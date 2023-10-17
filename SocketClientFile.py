@@ -9,7 +9,7 @@ from SocketMessageIOFile import SocketMessageIO, MessageType
 host_URL = '127.0.0.1'
 port = 3001
 color_dictionary = {}
-class Client:
+class SocketClient:
 
     def __init__(self):
         self.world_contents = []
@@ -178,5 +178,5 @@ class Client:
 
 
 if __name__ == '__main__':
-    client = Client()
+    client = SocketClient()
 
