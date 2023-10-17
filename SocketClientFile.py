@@ -9,6 +9,8 @@ from SocketMessageIOFile import SocketMessageIO, MessageType
 host_URL = '127.0.0.1'
 port = 3001
 color_dictionary = {}
+
+
 class SocketClient:
 
     def __init__(self):
@@ -22,7 +24,7 @@ class SocketClient:
 
         self.my_socket.connect((host_URL, port))
         self.manager.send_message_to_socket(self.name, self.my_socket)
-        keep_listening = True
+        self.keep_listening = True
         listener_thread = threading.Thread(target=self.listen_for_messages, args=(self.my_socket,))
         listener_thread.start()
 
@@ -49,7 +51,7 @@ class SocketClient:
                 message_type, message = self.manager.receive_message_from_socket(connection)
             except (ConnectionAbortedError, OSError) as Err: # if the socket is dropped, bail out.
                 # print(Err)
-                keep_listening = False
+                self.keep_listening = False
                 break
             # print(f"{message_type=}\t{message=}")
             if message_type == MessageType.SUBMISSION:
@@ -141,7 +143,7 @@ class SocketClient:
         :param tab_delimited_user_list_string: a tab-delimited string that holds a number of users and then the list of usernames
         :return: None
         """
-        global user_list
+
         print(f"{tab_delimited_user_list_string=}")
 
         parts = tab_delimited_user_list_string.split("\t")
@@ -167,8 +169,7 @@ class SocketClient:
         cease listening for the socket and shut down the socket.
         :return: None
         """
-        global keep_listening
-        keep_listening = False
+        self.keep_listening = False
         self.my_socket.close()
 
     def update_keyboard(self, ) -> None:
