@@ -1,7 +1,7 @@
 
 class Bullet:
 
-    def __init__(self, x:float, y:float, vx:float, vy:float, owner_id:int, bullet_id:int, lifetime:float):
+    def __init__(self, x: float, y: float, vx: float, vy: float, owner_id: int, bullet_id: int, lifetime: float):
         self.x = x
         self.y = y
         self.vx = vx
@@ -14,7 +14,8 @@ class Bullet:
         return f"BULLET\t{self.bullet_id}\t{self.x}\t{self.y}\t{self.owner_id}"
 
     def __repr__(self):
-        return f"BULLET\t{self.bullet_id=}\t{self.x=}\t{self.y=}\t{self.vx=}\t{self.vy=}\t{self.owner_id=}\t{self.lifetime=}"
+        return (f"BULLET\t{self.bullet_id=}\t{self.x=}\t{self.y=}\t{self.vx=}\t{self.vy=}\t{self.owner_id=}\t"
+                f"{self.lifetime=}")
 
     def update(self, delta_t: float) -> None:
         self.x += self.vx * delta_t
