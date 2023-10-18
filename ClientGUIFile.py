@@ -5,6 +5,7 @@ from tkinter import ttk
 from tkinter import simpledialog
 from tkinter.scrolledtext import ScrolledText
 from typing import List
+import os
 
 LEFT_MASK = 1
 RIGHT_MASK = 2
@@ -15,6 +16,7 @@ FIRE_MASK = 16
 
 class ClientGUI:
     def __init__(self):
+        print("Creating ClientGUI.")
         # Create the window
         self.root = tk.Tk()
         self.root.title("Client")
@@ -23,6 +25,8 @@ class ClientGUI:
 
         # setup keyboard listening system
         self.key_status = 0
+        self.key_counts = {"a": 0, "s": 0, "d": 0, "w": 0, " ": 0}
+        self.key_masks = {"a": LEFT_MASK, "s": BACK_MASK, "d": RIGHT_MASK, "w": FORWARD_MASK, " ": FORWARD_MASK}
         self.setup_key_listening()
 
         # these are two additional methods (yes, really!) that will be set by an external class so that we can call them
@@ -35,6 +39,7 @@ class ClientGUI:
         set up responses to various keyboard actions
         :return: None
         """
+
         self.root.bind("<KeyPress-a>", self.a_pressed)
         self.root.bind("<KeyRelease-a>", self.a_released)
         self.root.bind("<KeyPress-d>", self.d_pressed)
@@ -48,33 +53,43 @@ class ClientGUI:
 
     def a_pressed(self, event_info):
         self.key_status = self.key_status | LEFT_MASK
+        self.key_counts["a"] += 1
 
     def a_released(self, event_info):
-        self.key_status = self.key_status & (255 - LEFT_MASK)
+        self.text_field.after(400, lambda: self.decrement_key_count("a"))
+
+    def decrement_key_count(self, key):
+        self.key_counts[key] -= 1
+        if self.key_counts[key] == 0:
+            self.key_status = self.key_status & (255 - self.key_masks[key])
 
     def d_pressed(self, event_info):
         self.key_status = self.key_status | RIGHT_MASK
+        self.key_counts["d"] += 1
 
     def d_released(self, event_info):
-        self.key_status = self.key_status & (255 - RIGHT_MASK)
+        self.text_field.after(400, lambda: self.decrement_key_count("d"))
 
     def s_pressed(self, event_info):
         self.key_status = self.key_status | BACK_MASK
+        self.key_counts["s"] += 1
 
     def s_released(self, event_info):
-        self.key_status = self.key_status & (255 - BACK_MASK)
+        self.text_field.after(400, lambda: self.decrement_key_count("s"))
 
     def w_pressed(self, event_info):
         self.key_status = self.key_status | FORWARD_MASK
+        self.key_counts["w"] += 1
 
     def w_released(self, event_info):
-        self.key_status = self.key_status & (255 - FORWARD_MASK)
+        self.text_field.after(400, lambda: self.decrement_key_count("w"))
 
     def space_pressed(self, event_info):
         self.key_status = self.key_status | FIRE_MASK
+        self.key_counts[" "] += 1
 
     def space_released(self, event_info):
-        self.key_status = self.key_status & (255 - FIRE_MASK)
+        self.text_field.after(400, lambda: self.decrement_key_count(" "))
 
     def build_GUI_elements(self) -> None:
         """
@@ -136,6 +151,7 @@ class ClientGUI:
         """
         self.shut_down_socket()
         self.root.destroy()
+
 
     def set_user_list(self, users: List[str]) -> None:
         """
