@@ -5,18 +5,19 @@ import time
 angular_velocity = 1.5 * math.pi
 acceleration = 30
 max_v = 60
-max_v_squared = max_v **2
+max_v_squared = max_v ** 2
+
 
 class PlayerShip:
 
-    def __init__(self, id:int, name:str):
+    def __init__(self, user_id: int, name: str):
         self.x = random.randrange(800)
         self.y = random.randrange(800)
         self.vx = 0
         self.vy = 0
         self.bearing = random.random() * 2 * math.pi - math.pi
         self.controls = 0
-        self.my_id = id
+        self.my_id = user_id
         self.health = 100
         self.name = name
         self.last_shot_taken = time.time()
