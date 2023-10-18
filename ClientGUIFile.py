@@ -12,6 +12,7 @@ BACK_MASK = 4
 FORWARD_MASK = 8
 FIRE_MASK = 16
 
+
 class ClientGUI:
     def __init__(self):
         # Create the window
@@ -28,7 +29,6 @@ class ClientGUI:
         # from inside this class once they have been set. But for now, they're None.
         self.shut_down_socket = None
         self.tell_my_client_to_send_message = None
-
 
     def setup_key_listening(self) -> None:
         """
@@ -76,7 +76,6 @@ class ClientGUI:
     def space_released(self, event_info):
         self.key_status = self.key_status & (255 - FIRE_MASK)
 
-
     def build_GUI_elements(self) -> None:
         """
         builds and arranges the GUI items for the window.
@@ -111,9 +110,8 @@ class ClientGUI:
         # self.chat_response_text['state'] = 'disabled'  # not editable by user
 
         # This is where the graphics will go...
-        self.world_canvas = tk.Canvas(self.root, width = 800, height = 800, background = "black")
+        self.world_canvas = tk.Canvas(self.root, width=800, height=800, background="black")
         self.world_canvas.grid(column=1, row=0, sticky="nw")
-
 
     def run_loop(self) -> None:
         """
@@ -201,7 +199,7 @@ class ClientGUI:
         x = int(float(item["x"]))
         y = int(float(item["y"]))
         if len(self.world_canvas.find_withtag(tag)) == 0:
-            self.world_canvas.create_oval(x - 2, y - 2, x + 2, y + 2, fill="white", outline="", tag=tag)
+            self.world_canvas.create_oval(x - 2, y - 2, x + 2, y + 2, fill="white", outline="", tags=tag)
         else:
             self.world_canvas.coords(tag, x - 2, y - 2, x + 2, y + 2)
 
@@ -223,19 +221,19 @@ class ClientGUI:
         tag = f"PLAYER{user_id}"
         # find the object, if it exists.
         my_ship_list = self.world_canvas.find_withtag(tag)
-        if len(my_ship_list) == 0: # if nothing with the tag exists on screen, make it.
-            self.world_canvas.create_line(x, y, int(x - 5*math.cos(bearing)), int(y- 5 * math.sin(bearing)),
+        if len(my_ship_list) == 0:  # if nothing with the tag exists on screen, make it.
+            self.world_canvas.create_line(x, y, int(x - 5*math.cos(bearing)), int(y - 5 * math.sin(bearing)),
                                           fill="black", width=1, arrow='last', arrowshape=(4, 6, 2),
-                                          tag=tag+"thrust")
+                                          tags=tag+"thrust")
             # ship arrow
             self.world_canvas.create_line(x, y, int(x + 5 * math.cos(bearing)), int(y + 5 * math.sin(bearing)),
                                           fill=item['color'], width=2, arrow='last', arrowshape=(7, 11, 5),
-                                          tag=tag)
+                                          tags=tag)
             # name
-            self.world_canvas.create_text(x, y-15, text=item["name"], justify='center', tag=tag+"name", fill="white")
+            self.world_canvas.create_text(x, y-15, text=item["name"], justify='center', tags=tag+"name", fill="white")
             # healthbar
-            self.world_canvas.create_line(x-bar_length/2, y+10, x+bar_length/2, y+10, tag=tag+"health", fill="green")
-        else: # we found the item by its tag, so modify it, instead of recreating it.
+            self.world_canvas.create_line(x-bar_length/2, y+10, x+bar_length/2, y+10, tags=tag+"health", fill="green")
+        else:  # we found the item by its tag, so modify it, instead of recreating it.
             self.world_canvas.coords(tag+"thrust", x, y,
                                      int(x - 8 * math.cos(bearing)),
                                      int(y - 8 * math.sin(bearing)))
@@ -252,16 +250,15 @@ class ClientGUI:
                 self.world_canvas.itemconfig(tag + "health", fill="green")
             # update color of thruster ship, based on whether ship is thrusting.
             if is_thrusting:
-                self.world_canvas.itemconfig(tag+ "thrust", fill= "#" + \
-                    f"FF{random.randrange(64, 255):02X}00")
+                self.world_canvas.itemconfig(tag + "thrust", fill="#" + f"FF{random.randrange(64, 255):02X}00")
             else:
-                self.world_canvas.itemconfig(tag+ "thrust", fill="black")
+                self.world_canvas.itemconfig(tag + "thrust", fill="black")
 
     def delete_item_from_world(self, item_type: str, object_id: int) -> None:
         """
         Since the objects on screen are maintained by id number and are modified rather than recreated each stop, we
         have need to remove items when they are no longer going to be in the world.
-        :param item_type: A string (e.g., "PLAYER" or "BULLET" indicating what type of thing is being deleted.
+        :param item_type: A string (e.g., "PLAYER" or "BULLET" indicating what type of thing is being deleted.)
         :param object_id: The object_id of the object we need to remove.
         :return: None
         """
