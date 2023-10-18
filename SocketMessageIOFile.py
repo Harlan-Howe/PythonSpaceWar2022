@@ -17,7 +17,8 @@ class SocketMessageIO:
     A utility class that makes it easy to send and receive messages from a socket in the format of a packed length of
     the message, followed by the message.
     """
-    def receive_message_from_socket(self, connection: socket) -> Tuple[MessageType, str]:
+    @staticmethod
+    def receive_message_from_socket(connection: socket) -> Tuple[MessageType, str]:
         """
         Waits until the socket provides a message in the form of a packed length of the message and the message itself.
         The message could conceivably be quite long, so it will do multiple reads of the socket until all the data
@@ -52,7 +53,8 @@ class SocketMessageIO:
         output_message = message[first_tab_loc+1:]  # the rest of the string from after the initial tab.
         return message_type, output_message
 
-    def send_message_to_socket(self, message: str, connection: socket, message_type = MessageType.SUBMISSION) -> None:
+    @staticmethod
+    def send_message_to_socket(message: str, connection: socket, message_type=MessageType.SUBMISSION) -> None:
         """
         Sends the given message to the given socket in the format of the packed length of the message, followed by
         the encoded message, itself.
