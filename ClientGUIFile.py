@@ -27,7 +27,7 @@ class ClientGUI:
         # setup keyboard listening system
         self.key_status = 0
         self.key_counts = {"a": 0, "s": 0, "d": 0, "w": 0, " ": 0}
-        self.key_masks = {"a": LEFT_MASK, "s": BACK_MASK, "d": RIGHT_MASK, "w": FORWARD_MASK, " ": FORWARD_MASK}
+        self.key_masks = {"a": LEFT_MASK, "s": BACK_MASK, "d": RIGHT_MASK, "w": FORWARD_MASK, " ": FIRE_MASK}
         self.setup_key_listening()
 
         # these are two additional methods (yes, really!) that will be set by an external class so that we can call them
