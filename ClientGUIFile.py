@@ -13,6 +13,7 @@ BACK_MASK = 4
 FORWARD_MASK = 8
 FIRE_MASK = 16
 
+KEY_RELEASE_DELAY = 400
 
 class ClientGUI:
     def __init__(self):
@@ -52,44 +53,47 @@ class ClientGUI:
         self.root.bind("<KeyRelease-space>", self.space_released)
 
     def a_pressed(self, event_info):
-        self.key_status = self.key_status | LEFT_MASK
-        self.key_counts["a"] += 1
+        self.increment_key_count("a")
 
     def a_released(self, event_info):
-        self.text_field.after(400, lambda: self.decrement_key_count("a"))
+        self.text_field.after(KEY_RELEASE_DELAY, lambda: self.decrement_key_count("a"))
+
+    def d_pressed(self, event_info):
+        self.increment_key_count("d")
+
+    def d_released(self, event_info):
+        self.text_field.after(KEY_RELEASE_DELAY, lambda: self.decrement_key_count("d"))
+
+    def s_pressed(self, event_info):
+        self.increment_key_count("s")
+
+    def s_released(self, event_info):
+        self.text_field.after(KEY_RELEASE_DELAY, lambda: self.decrement_key_count("s"))
+
+    def w_pressed(self, event_info):
+        self.increment_key_count("w")
+
+    def w_released(self, event_info):
+        self.text_field.after(KEY_RELEASE_DELAY, lambda: self.decrement_key_count("w"))
+
+    def space_pressed(self, event_info):
+        self.increment_key_count(" ")
+
+    def space_released(self, event_info):
+        self.text_field.after(KEY_RELEASE_DELAY, lambda: self.decrement_key_count(" "))
+
+    def increment_key_count(self, key):
+        self.key_status = self.key_status | self.key_masks[key]
+        self.key_counts[key] += 1
+        if self.key_counts[key] == 1:
+            print(f"{key} is initially pressed.")
 
     def decrement_key_count(self, key):
         self.key_counts[key] -= 1
         if self.key_counts[key] == 0:
             self.key_status = self.key_status & (255 - self.key_masks[key])
-
-    def d_pressed(self, event_info):
-        self.key_status = self.key_status | RIGHT_MASK
-        self.key_counts["d"] += 1
-
-    def d_released(self, event_info):
-        self.text_field.after(400, lambda: self.decrement_key_count("d"))
-
-    def s_pressed(self, event_info):
-        self.key_status = self.key_status | BACK_MASK
-        self.key_counts["s"] += 1
-
-    def s_released(self, event_info):
-        self.text_field.after(400, lambda: self.decrement_key_count("s"))
-
-    def w_pressed(self, event_info):
-        self.key_status = self.key_status | FORWARD_MASK
-        self.key_counts["w"] += 1
-
-    def w_released(self, event_info):
-        self.text_field.after(400, lambda: self.decrement_key_count("w"))
-
-    def space_pressed(self, event_info):
-        self.key_status = self.key_status | FIRE_MASK
-        self.key_counts[" "] += 1
-
-    def space_released(self, event_info):
-        self.text_field.after(400, lambda: self.decrement_key_count(" "))
+        if 0 == self.key_counts[key]:
+            print(f"{key} is really released.")
 
     def build_GUI_elements(self) -> None:
         """
@@ -199,11 +203,31 @@ class ClientGUI:
         :return: None
         """
         # self.world_canvas.delete("all")
+        # self.draw_object_count(world_list)
+        self.draw_key_states()
         for item in world_list:
             if item["type"] == "PLAYER":
                 self.draw_player(item)
             elif item["type"] == "BULLET":
                 self.draw_bullet(item)
+
+    def draw_object_count(self, world_list):
+        tag = "OBJECT_COUNT"
+        if len(self.world_canvas.find_withtag(tag)) == 0:
+            self.world_canvas.create_line(20, 0, 20, min(len(world_list), 800), fill="yellow", width=4, tags=tag)
+        else:
+            self.world_canvas.coords(tag, 20, 0, 20, min(len(world_list), 800))
+
+    def draw_key_states(self):
+        i = 0
+        for key in ("w", "a", "s", "d", " "):
+            tag = f"KEY_{key}"
+            rad = 5 * self.key_counts[key]
+            if len(self.world_canvas.find_withtag(tag)) == 0:
+                self.world_canvas.create_oval(10, 10+25*i, 10+rad, 10+25*i+rad, fill= "white", tags=tag)
+            else:
+                self.world_canvas.coords(tag, 10, 10+25*i, 10+rad, 10+25*i+rad)
+            i += 1
 
     def draw_bullet(self, item) -> None:
         """
