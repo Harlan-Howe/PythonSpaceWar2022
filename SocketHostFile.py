@@ -38,6 +38,7 @@ class SocketHost:
         self.my_socket = None
         self.last_update = time.time()
         self.game_loop_timer = None
+        self.game_loop_iteration = 0
 
     def start_listening(self):
         # Start the process of listening for users
@@ -177,6 +178,10 @@ class SocketHost:
         # calculate the amount of time it has been since the last update.
         now = time.time()
         delta_t = now - self.last_update
+
+        self.game_loop_iteration += 1
+        if self.game_loop_iteration % 500 == 0:
+            print(f"{delta_t = }")
 
         # do updates etc. for each type of object
         self.manage_step_for_users(delta_t)
