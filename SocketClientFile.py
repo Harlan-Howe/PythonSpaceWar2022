@@ -16,7 +16,7 @@ class SocketClient:
 
     def __init__(self):
         self.world_contents = []
-        self.world_contents_editable = True
+        self.world_contents_lock = threading.Lock()
         self.client_gui = ClientGUI()
         self.user_list = []
         self.my_socket = socket.socket()
@@ -87,38 +87,37 @@ class SocketClient:
         world_update_delta_t = this_time - self.last_world_update_time
         if self.world_update_count % 100 == 0:
             print(f"Handle_world_update delta t = {world_update_delta_t}")
-        if (world_update_delta_t > 0.0333):
-            if self.world_contents_editable:
-                self.world_contents_editable = False
-                self.world_contents = []
-                lines = tab_delimited_world_list_string.split("\n")
-                for line in lines:
-                    values = line.split("\t")
-                    game_object = {"type": values[0]}
-                    if values[0] == "":
-                        continue
-                    if values[0] == "PLAYER":
-                        game_object["id"] = int(values[1])
-                        game_object["x"] = float(values[2])
-                        game_object["y"] = float(values[3])
-                        game_object["bearing"] = float(values[4])
-                        game_object["thrusting"] = (int(values[5]) == 1)
-                        game_object["health"] = int(values[6])
-                        game_object["name"] = values[7]
-                        if game_object["id"] not in color_dictionary:
-                            color_dictionary[game_object["id"]] = "#" + \
-                                f"{random.randrange(64, 255):02X}{random.randrange(64, 255):02X}{random.randrange(64, 255):02X}"
-                        game_object["color"] = color_dictionary[game_object["id"]]
-                    if values[0] == "BULLET":
-                        # print(f"Bullet handled. {values=} ")
-                        game_object["id"] = int(values[1])
-                        game_object["x"] = float(values[2])
-                        game_object["y"] = float(values[3])
-                        game_object["owner_id"] = int(values[4])
+        if world_update_delta_t > 0.0333:
+            self.world_contents_lock.acquire()
+            self.world_contents = []
+            lines = tab_delimited_world_list_string.split("\n")
+            for line in lines:
+                values = line.split("\t")
+                game_object = {"type": values[0]}
+                if values[0] == "":
+                    continue
+                if values[0] == "PLAYER":
+                    game_object["id"] = int(values[1])
+                    game_object["x"] = float(values[2])
+                    game_object["y"] = float(values[3])
+                    game_object["bearing"] = float(values[4])
+                    game_object["thrusting"] = (int(values[5]) == 1)
+                    game_object["health"] = int(values[6])
+                    game_object["name"] = values[7]
+                    if game_object["id"] not in color_dictionary:
+                        color_dictionary[game_object["id"]] = "#" + \
+                            f"{random.randrange(64, 255):02X}{random.randrange(64, 255):02X}{random.randrange(64, 255):02X}"
+                    game_object["color"] = color_dictionary[game_object["id"]]
+                if values[0] == "BULLET":
+                    # print(f"Bullet handled. {values=} ")
+                    game_object["id"] = int(values[1])
+                    game_object["x"] = float(values[2])
+                    game_object["y"] = float(values[3])
+                    game_object["owner_id"] = int(values[4])
 
-                    self.world_contents.append(game_object)
-                self.client_gui.update_world(self.world_contents)
-                self.world_contents_editable = True
+                self.world_contents.append(game_object)
+            self.client_gui.update_world(self.world_contents)
+            self.world_contents_lock.release()
             self.last_world_update_time = this_time
 
     def handle_user_list_update(self, tab_delimited_user_list_string: str) -> None:
