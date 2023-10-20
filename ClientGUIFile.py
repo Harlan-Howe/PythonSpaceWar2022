@@ -156,7 +156,6 @@ class ClientGUI:
         self.shut_down_socket()
         self.root.destroy()
 
-
     def set_user_list(self, users: List[str]) -> None:
         """
         updates the onscreen list of users with the given list of strings.
@@ -220,11 +219,12 @@ class ClientGUI:
 
     def draw_key_states(self):
         i = 0
+        c = ("white","yellow","red","green","magenta")
         for key in ("w", "a", "s", "d", " "):
             tag = f"KEY_{key}"
-            rad = 5 * self.key_counts[key]
+            rad = 3+5 * self.key_counts[key]
             if len(self.world_canvas.find_withtag(tag)) == 0:
-                self.world_canvas.create_oval(10, 10+25*i, 10+rad, 10+25*i+rad, fill= "white", tags=tag)
+                self.world_canvas.create_oval(10, 10+25*i, 10+rad, 10+25*i+rad, fill=c[i], tags=tag)
             else:
                 self.world_canvas.coords(tag, 10, 10+25*i, 10+rad, 10+25*i+rad)
             i += 1
