@@ -1,6 +1,7 @@
 import random
 import socket
 import threading
+import time
 
 from ClientGUIFile import ClientGUI
 from RepeatTimerFile import RepeatTimer
@@ -33,8 +34,13 @@ class SocketClient:
         self.client_gui.tell_my_client_to_send_message = self.send_message
         self.client_gui.shut_down_socket = self.close_socket
 
-        keyboard_timer = RepeatTimer(0.1, self.update_keyboard)
+        keyboard_timer = RepeatTimer(0.05, self.update_keyboard)
         keyboard_timer.start()
+
+        # animation_timer = RepeatTimer(0.1, self.refresh_canvas)
+        # animation_timer.start()
+        self.world_update_count = 0
+        self.last_world_update_time = time.time()
 
         self.client_gui.run_loop()
         keyboard_timer.cancel()
@@ -76,37 +82,44 @@ class SocketClient:
             self.client_gui.delete_item_from_world(values[0], user_id)
 
     def handle_world_update(self, tab_delimited_world_list_string: str) -> None:
-        if self.world_contents_editable:
-            self.world_contents_editable = False
-            self.world_contents = []
-            lines = tab_delimited_world_list_string.split("\n")
-            for line in lines:
-                values = line.split("\t")
-                game_object = {"type": values[0]}
-                if values[0] == "":
-                    continue
-                if values[0] == "PLAYER":
-                    game_object["id"] = int(values[1])
-                    game_object["x"] = float(values[2])
-                    game_object["y"] = float(values[3])
-                    game_object["bearing"] = float(values[4])
-                    game_object["thrusting"] = (int(values[5]) == 1)
-                    game_object["health"] = int(values[6])
-                    game_object["name"] = values[7]
-                    if game_object["id"] not in color_dictionary:
-                        color_dictionary[game_object["id"]] = "#" + \
-                            f"{random.randrange(64, 255):02X}{random.randrange(64, 255):02X}{random.randrange(64, 255):02X}"
-                    game_object["color"] = color_dictionary[game_object["id"]]
-                if values[0] == "BULLET":
-                    # print(f"Bullet handled. {values=} ")
-                    game_object["id"] = int(values[1])
-                    game_object["x"] = float(values[2])
-                    game_object["y"] = float(values[3])
-                    game_object["owner_id"] = int(values[4])
+        self.world_update_count += 1
+        this_time = time.time()
+        world_update_delta_t = this_time - self.last_world_update_time
+        if self.world_update_count % 100 == 0:
+            print(f"Handle_world_update delta t = {world_update_delta_t}")
+        if (world_update_delta_t > 0.0333):
+            if self.world_contents_editable:
+                self.world_contents_editable = False
+                self.world_contents = []
+                lines = tab_delimited_world_list_string.split("\n")
+                for line in lines:
+                    values = line.split("\t")
+                    game_object = {"type": values[0]}
+                    if values[0] == "":
+                        continue
+                    if values[0] == "PLAYER":
+                        game_object["id"] = int(values[1])
+                        game_object["x"] = float(values[2])
+                        game_object["y"] = float(values[3])
+                        game_object["bearing"] = float(values[4])
+                        game_object["thrusting"] = (int(values[5]) == 1)
+                        game_object["health"] = int(values[6])
+                        game_object["name"] = values[7]
+                        if game_object["id"] not in color_dictionary:
+                            color_dictionary[game_object["id"]] = "#" + \
+                                f"{random.randrange(64, 255):02X}{random.randrange(64, 255):02X}{random.randrange(64, 255):02X}"
+                        game_object["color"] = color_dictionary[game_object["id"]]
+                    if values[0] == "BULLET":
+                        # print(f"Bullet handled. {values=} ")
+                        game_object["id"] = int(values[1])
+                        game_object["x"] = float(values[2])
+                        game_object["y"] = float(values[3])
+                        game_object["owner_id"] = int(values[4])
 
-                self.world_contents.append(game_object)
-            self.client_gui.update_world(self.world_contents)
-            self.world_contents_editable = True
+                    self.world_contents.append(game_object)
+                self.client_gui.update_world(self.world_contents)
+                self.world_contents_editable = True
+            self.last_world_update_time = this_time
 
     def handle_user_list_update(self, tab_delimited_user_list_string: str) -> None:
         """
@@ -170,6 +183,12 @@ class SocketClient:
         keyboard_code = self.client_gui.key_status
         # print(f"{bin(keyboard_code)}")
         self.manager.send_message_to_socket(keyboard_code, self.my_socket, message_type=MessageType.KEY_STATUS)
+
+    def refresh_canvas(self):
+        if self.world_contents_editable:
+            self.world_contents_editable = False
+            self.client_gui.update_world(self.world_contents)
+            self.world_contents_editable = True
 
 
 if __name__ == '__main__':
