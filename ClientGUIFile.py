@@ -5,7 +5,7 @@ from tkinter import ttk
 from tkinter import simpledialog
 from tkinter.scrolledtext import ScrolledText
 from typing import List
-import os
+import threading
 
 LEFT_MASK = 1
 RIGHT_MASK = 2
@@ -27,6 +27,7 @@ class ClientGUI:
         # setup keyboard listening system
         self.key_status = 0
         self.key_counts = {"a": 0, "s": 0, "d": 0, "w": 0, " ": 0}
+        self.key_counts_lock = threading.Lock()
         self.key_masks = {"a": LEFT_MASK, "s": BACK_MASK, "d": RIGHT_MASK, "w": FORWARD_MASK, " ": FIRE_MASK}
         self.setup_key_listening()
 
@@ -84,16 +85,20 @@ class ClientGUI:
 
     def increment_key_count(self, key):
         self.key_status = self.key_status | self.key_masks[key]
+        self.key_counts_lock.acquire()
         self.key_counts[key] += 1
         if self.key_counts[key] == 1:
             print(f"{key} is initially pressed.")
+        self.key_counts_lock.release()
 
     def decrement_key_count(self, key):
+        self.key_counts_lock.acquire()
         self.key_counts[key] -= 1
         if self.key_counts[key] == 0:
             self.key_status = self.key_status & (255 - self.key_masks[key])
         if 0 == self.key_counts[key]:
             print(f"{key} is really released.")
+        self.key_counts_lock.release()
 
     def build_GUI_elements(self) -> None:
         """
