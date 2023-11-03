@@ -96,7 +96,6 @@ class ClientGUI:
         self.key_counts[key] -= 1
         if self.key_counts[key] == 0:
             self.key_status = self.key_status & (255 - self.key_masks[key])
-        if 0 == self.key_counts[key]:
             print(f"{key} is really released.")
         self.key_counts_lock.release()
 
@@ -226,10 +225,13 @@ class ClientGUI:
         i = 0
         c = ("white","yellow","red","green","magenta")
         for key in ("w", "a", "s", "d", " "):
-            tag = f"KEY_{key}"
+            tag = f"KEYBOARD_{key}_TAG"
+            if key == " ":
+                tag = "KEYBOARD_SPACE_TAG"
             rad = 3+5 * self.key_counts[key]
             if len(self.world_canvas.find_withtag(tag)) == 0:
                 self.world_canvas.create_oval(10, 10+25*i, 10+rad, 10+25*i+rad, fill=c[i], tags=tag)
+                print(f"Making new item {tag=}.")
             else:
                 self.world_canvas.coords(tag, 10, 10+25*i, 10+rad, 10+25*i+rad)
             i += 1
