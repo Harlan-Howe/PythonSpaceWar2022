@@ -6,6 +6,7 @@ from tkinter import simpledialog
 from tkinter.scrolledtext import ScrolledText
 from typing import List
 import threading
+import time
 
 LEFT_MASK = 1
 RIGHT_MASK = 2
@@ -13,7 +14,7 @@ BACK_MASK = 4
 FORWARD_MASK = 8
 FIRE_MASK = 16
 
-KEY_RELEASE_DELAY = 400
+KEY_RELEASE_DELAY = 250
 
 class ClientGUI:
     def __init__(self):
@@ -26,8 +27,8 @@ class ClientGUI:
 
         # setup keyboard listening system
         self.key_status = 0
-        self.key_counts = {"a": 0, "s": 0, "d": 0, "w": 0, " ": 0}
-        self.key_counts_lock = threading.Lock()
+        self.latest_key_press = {"a": 0, "s": 0, "d": 0, "w": 0, " ": 0}
+        self.latest_key_press_lock = threading.Lock()
         self.key_masks = {"a": LEFT_MASK, "s": BACK_MASK, "d": RIGHT_MASK, "w": FORWARD_MASK, " ": FIRE_MASK}
         self.setup_key_listening()
 
@@ -54,9 +55,12 @@ class ClientGUI:
         self.root.bind("<KeyRelease-space>", self.space_released)
 
     def a_pressed(self, event_info):
+        print(f"Press a {time.time()}")
         self.increment_key_count("a")
 
+
     def a_released(self, event_info):
+        print(f"Release a {time.time()}")
         self.text_field.after(KEY_RELEASE_DELAY, lambda: self.decrement_key_count("a"))
 
     def d_pressed(self, event_info):
@@ -84,20 +88,23 @@ class ClientGUI:
         self.text_field.after(KEY_RELEASE_DELAY, lambda: self.decrement_key_count(" "))
 
     def increment_key_count(self, key):
+        key_press_time = time.time()
+        print(f"Incrementing '{key}': {key_press_time}")
         self.key_status = self.key_status | self.key_masks[key]
-        self.key_counts_lock.acquire()
-        self.key_counts[key] += 1
-        if self.key_counts[key] == 1:
-            print(f"{key} is initially pressed.")
-        self.key_counts_lock.release()
+        self.latest_key_press_lock.acquire()
+        self.latest_key_press[key] = key_press_time
+        self.latest_key_press_lock.release()
 
     def decrement_key_count(self, key):
-        self.key_counts_lock.acquire()
-        self.key_counts[key] -= 1
-        if self.key_counts[key] == 0:
+        key_release_time = time.time()
+        print(f"Decrementing '{key}': {key_release_time}")
+        self.latest_key_press_lock.acquire()
+        if self.latest_key_press[key] + KEY_RELEASE_DELAY/1000 < key_release_time:
             self.key_status = self.key_status & (255 - self.key_masks[key])
-            print(f"{key} is really released.")
-        self.key_counts_lock.release()
+            print(f"Actually released {key}")
+        else:
+            print(f"Too soon. {key}: {self.latest_key_press[key] + KEY_RELEASE_DELAY/1000 - key_release_time}")
+        self.latest_key_press_lock.release()
 
     def build_GUI_elements(self) -> None:
         """
@@ -207,7 +214,7 @@ class ClientGUI:
         """
         # self.world_canvas.delete("all")
         # self.draw_object_count(world_list)
-        self.draw_key_states()
+        # self.draw_key_states()
         for item in world_list:
             if item["type"] == "PLAYER":
                 self.draw_player(item)
@@ -221,20 +228,20 @@ class ClientGUI:
         else:
             self.world_canvas.coords(tag, 20, 0, 20, min(len(world_list), 800))
 
-    def draw_key_states(self):
-        i = 0
-        c = ("white","yellow","red","green","magenta")
-        for key in ("w", "a", "s", "d", " "):
-            tag = f"KEYBOARD_{key}_TAG"
-            if key == " ":
-                tag = "KEYBOARD_SPACE_TAG"
-            rad = 3+5 * self.key_counts[key]
-            if len(self.world_canvas.find_withtag(tag)) == 0:
-                self.world_canvas.create_oval(10, 10+25*i, 10+rad, 10+25*i+rad, fill=c[i], tags=tag)
-                print(f"Making new item {tag=}.")
-            else:
-                self.world_canvas.coords(tag, 10, 10+25*i, 10+rad, 10+25*i+rad)
-            i += 1
+    # def draw_key_states(self):
+    #     i = 0
+    #     c = ("white","yellow","red","green","magenta")
+    #     for key in ("w", "a", "s", "d", " "):
+    #         tag = f"KEYBOARD_{key}_TAG"
+    #         if key == " ":
+    #             tag = "KEYBOARD_SPACE_TAG"
+    #         rad = 4+5 * self.key_counts[key]
+    #         if len(self.world_canvas.find_withtag(tag)) == 0:
+    #             self.world_canvas.create_oval(100, 20+25*i, 100+rad, 20+25*i+rad, fill=c[i], tags=tag)
+    #             print(f"Making new item {tag=}.")
+    #         else:
+    #             self.world_canvas.coords(tag, 10, 10+25*i, 10+rad, 10+25*i+rad)
+    #         i += 1
 
     def draw_bullet(self, item) -> None:
         """
