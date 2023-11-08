@@ -40,6 +40,8 @@ class SocketHost:
         self.game_loop_timer = None
         self.game_loop_iteration = 0
 
+        self.last_world_update_sent = time.time()
+
     def start_listening(self):
         # Start the process of listening for users
         self.my_socket = socket.socket()
@@ -180,8 +182,10 @@ class SocketHost:
         delta_t = now - self.last_update
 
         self.game_loop_iteration += 1
-        if self.game_loop_iteration % 500 == 0:
-            print(f"{delta_t = }")
+        # if self.game_loop_iteration % 500 == 0:
+        #     print(f"{delta_t = }")
+        if delta_t > 0.1:
+            print(f"{delta_t = }\t Too long delay in game loop!")
 
         # do updates etc. for each type of object
         self.manage_step_for_users(delta_t)
@@ -284,6 +288,7 @@ class SocketHost:
         send a message with a list of the public info of all on-screen objects that should be drawn on-screen.
         :return: None
         """
+
         message = ""
         self.user_dictionary_lock.acquire()
         for user_id in self.user_dictionary:
@@ -294,6 +299,10 @@ class SocketHost:
             message += f"{obj.public_info()}\n"
             # print(f"Sending: {obj.public_info=}")
         self.broadcast_message_to_all(message, MessageType.WORLD_UPDATE)
+        # now = time.time()
+        # delta = now - self.last_world_update_sent
+        # self.last_world_update_sent = now
+        # print(delta)
 
 
 if __name__ == '__main__':
