@@ -2,6 +2,7 @@ import random
 import socket
 import threading
 import time
+from typing import Optional
 
 from ClientGUIFile import ClientGUI
 from RepeatTimerFile import RepeatTimer
@@ -37,13 +38,21 @@ class SocketClient:
         keyboard_timer = RepeatTimer(0.05, self.update_keyboard)
         keyboard_timer.start()
 
-        # animation_timer = RepeatTimer(0.1, self.refresh_canvas)
-        # animation_timer.start()
         self.world_update_count = 0
         self.last_world_update_time = time.time()
 
+        GUI_update_thread = threading.Thread(target=self.do_world_update)
+        GUI_update_thread.start()
+
+        # animation_timer = RepeatTimer(0.1, self.refresh_canvas)
+        # animation_timer.start()
+
+        self.latest_update_info_string = None
+        self.latest_update_info_string_lock = threading.Lock()
+
         self.client_gui.run_loop()
         keyboard_timer.cancel()
+        self.keep_listening = False
         print("Done.")
 
     def listen_for_messages(self, connection: socket) -> None:
@@ -82,15 +91,40 @@ class SocketClient:
             self.client_gui.delete_item_from_world(values[0], user_id)
 
     def handle_world_update(self, tab_delimited_world_list_string: str) -> None:
-        self.world_update_count += 1
-        this_time = time.time()
-        world_update_delta_t = this_time - self.last_world_update_time
-        if self.world_update_count % 100 == 0:
-            print(f"Handle_world_update delta t = {world_update_delta_t}")
-        if world_update_delta_t > 0.0333:
+
+        self.latest_update_info_string_lock.acquire()
+        self.latest_update_info_string = tab_delimited_world_list_string
+        self.latest_update_info_string_lock.release()
+
+    def do_world_update(self):
+        time_steps = []
+        while self.keep_listening:
+            this_time = time.time()
+            time_steps.clear()
+            time_steps.append(("A",this_time))
+            world_update_delta_t = this_time - self.last_world_update_time
+
+            # if self.world_update_count % 100 == 0:
+            #     print(f"Handle_world_update delta t = {world_update_delta_t}")
+            if world_update_delta_t > 1:
+                print(f"Long delay... {world_update_delta_t:3.2f} seconds")
+            if world_update_delta_t < 0.0333:
+                continue
+
+            time_steps.append(("B", time.time()))
+            lines: Optional[str] = None
+            self.latest_update_info_string_lock.acquire()
+            if self.latest_update_info_string is not None:
+                lines = self.latest_update_info_string.split("\n")
+                self.latest_update_info_string = None
+            self.latest_update_info_string_lock.release()
+
+            time_steps.append(("C", time.time()))
+            if lines is None:
+                continue
+
             self.world_contents_lock.acquire()
             self.world_contents = []
-            lines = tab_delimited_world_list_string.split("\n")
             for line in lines:
                 values = line.split("\t")
                 game_object = {"type": values[0]}
@@ -116,10 +150,16 @@ class SocketClient:
                     game_object["owner_id"] = int(values[4])
 
                 self.world_contents.append(game_object)
+            time_steps.append(("D", time.time()))
+
             self.client_gui.update_world(self.world_contents)
+            time_steps.append(("E", time.time()))
+
             self.world_contents_lock.release()
             self.last_world_update_time = this_time
-
+            if time.time() - this_time > 1:
+                print(f"Long time to finish: {time.time() - this_time} seconds")
+                print(time_steps)
     def handle_user_list_update(self, tab_delimited_user_list_string: str) -> None:
         """
         The host has sent a tab-delimited string describing an updated user list; update the user_list in memory and
